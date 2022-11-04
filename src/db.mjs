@@ -1,10 +1,12 @@
+const classTableName = "Class"
+
 /**
  * @return {Promise<lf.Database>}
  */
 export function makeDb() {
 
     let schemaBuilder = lf.schema.create("main", 1);
-    schemaBuilder.createTable("Class")
+    schemaBuilder.createTable(classTableName)
         .addColumn("id", lf.Type.INTEGER)
         .addColumn("name", lf.Type.STRING)
         .addColumn("superId", lf.Type.INTEGER)
@@ -68,6 +70,20 @@ function getClassName(thing) {
 function getSuperClassName(thing) {
     let name = Object.getPrototypeOf(Object.getPrototypeOf(thing)).constructor.name
     return name === "Object" ? null : name;
+}
+
+/**
+ * @param {string} name
+ * @param {lf.Database} db
+ * @return {Promise<number | null>}
+ */
+async function tryGetClassIdByName(name, db) {
+    let classTable = db.getSchema().table(classTableName)
+    let rows = await db.select(classTable.id)
+        .from(classTable)
+        .where(classTable.name.eq(name))
+        .exec();
+    return rows[0].id ?? null
 }
 
 /**
