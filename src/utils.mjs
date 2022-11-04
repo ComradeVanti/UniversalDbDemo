@@ -5,6 +5,8 @@ import { classTableName} from "./constants.mjs";
  * @return {string}
  */
 export function getThingTypeName(thing) {
+    if (thing === null) return "Null"
+    if (thing === undefined) return "Undefined"
     return thing.constructor.name
 }
 
