@@ -30,7 +30,7 @@ export function makeDb() {
         .addColumn("name", lf.Type.STRING)
         .addColumn("classId", lf.Type.INTEGER)
         .addColumn("type", lf.Type.STRING)
-        .addPrimaryKey(["id"])
+        .addPrimaryKey([{name: "id",'autoIncrement': true, order: lf.Order.DESC}])
         .addForeignKey("fk_classId", {
             local: "classId",
             ref: "Class.id"
@@ -39,7 +39,7 @@ export function makeDb() {
     schemaBuilder.createTable("Object")
         .addColumn("id", lf.Type.INTEGER)
         .addColumn("classId", lf.Type.INTEGER)
-        .addPrimaryKey(["id"])
+        .addPrimaryKey([{name: "id",'autoIncrement': true, order: lf.Order.DESC}])
         .addForeignKey("fk_classId", {
             local: "classId",
             ref: "Class.id"
@@ -50,7 +50,7 @@ export function makeDb() {
         .addColumn("propId", lf.Type.INTEGER)
         .addColumn("objectId", lf.Type.INTEGER)
         .addColumn("value", lf.Type.STRING)
-        .addPrimaryKey(["id"])
+        .addPrimaryKey([{name: "id",'autoIncrement': true, order: lf.Order.DESC}])
         .addForeignKey("fk_propId", {
             local: "propId",
             ref: "Property.id"
