@@ -62,6 +62,15 @@ function getClassName(thing) {
 }
 
 /**
+ * @param {Object} thing
+ * @return {string | null}
+ */
+function getSuperClassName(thing) {
+    let name = Object.getPrototypeOf(Object.getPrototypeOf(thing)).constructor.name
+    return name === "Object" ? null : name;
+}
+
+/**
  * @param {*} thing
  * @param {lf.Database} db
  * @return {Promise}
