@@ -6,6 +6,22 @@ const predefinedTypeNames = [
 ]
 
 /**
+ * @param {lf.Database} db
+ * @return {lf.schema.Table}
+ */
+function getClassTable(db) {
+    return db.getSchema().table(classTableName)
+}
+
+/**
+ * @param {lf.Database} db
+ * @return {lf.schema.Table}
+ */
+function getPropertyTable(db) {
+    return db.getSchema().table(propertyTableName)
+}
+
+/**
  * @param {*} thing
  * @return {string}
  */
@@ -52,13 +68,14 @@ export async function propertyExistsInClass(propertyDef, className, db) {
     let classId = await tryGetClassIdByName(className, db);
     // If the class does not exist, it does not contain the property
     if (classId === null) return false;
-    let propertyTable = db.getSchema().table(propertyTableName)
+    let propertyTable = getPropertyTable(db)
     let rows = await db.select()
         .from(propertyTable)
         .where(propertyTable.classId.eq(classId) &&
                    propertyTable.name.eq(propertyDef.name) &&
                    propertyTable.type.eq(propertyDef.typeName))
         .exec()
+    // There should only ever be one of a property in a class
     return rows.length === 1
 }
 
@@ -85,7 +102,7 @@ export async function tryGetTypeLabelFor(thing, db) {
  * @return {Promise<number | null>}
  */
 export async function tryGetClassIdByName(name, db) {
-    let classTable = db.getSchema().table(classTableName)
+    let classTable = getClassTable(db)
     let rows = await db.select(classTable.id)
         .from(classTable)
         .where(classTable.name.eq(name))
