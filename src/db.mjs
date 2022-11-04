@@ -88,6 +88,16 @@ async function tryGetClassIdByName(name, db) {
 }
 
 /**
+ * @param {string} name
+ * @param {lf.Database} db
+ * @return {Promise<boolean>}
+ */
+async function classWithNameExists(name, db) {
+    let id = await tryGetClassIdByName(name, db)
+    return id !== null
+}
+
+/**
  * @param {*} thing
  * @param {lf.Database} db
  * @return {Promise}
