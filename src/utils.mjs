@@ -1,5 +1,10 @@
 import {classTableName, propertyTableName} from "./constants.mjs";
 
+const predefinedTypeNames = [
+    "Null", "Undefined", "Number",
+    "String", "Boolean", "Object"
+]
+
 /**
  * @param {*} thing
  * @return {string}
@@ -55,6 +60,23 @@ export async function propertyExistsInClass(propertyDef, className, db) {
                    propertyTable.type.eq(propertyDef.typeName))
         .exec()
     return rows.length === 1
+}
+
+/**
+ * @param {*} thing
+ * @param {lf.Database} db
+ * @return {Promise<string|null>}
+ */
+export async function tryGetTypeLabelFor(thing, db) {
+    let typeName = getThingTypeName(thing)
+    if (predefinedTypeNames.includes(typeName))
+        return typeName
+    else {
+        let classId = await tryGetClassIdByName(typeName, db)
+        // If the referenced class does not exist
+        if (classId === null) return null;
+        return "Ref " + classId;
+    }
 }
 
 /**
