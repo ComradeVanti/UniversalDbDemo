@@ -1,9 +1,14 @@
 const classTableName = "Class"
 
 /**
- * @typedef {Object} Property
+ * @typedef {Object} PropertyDefinition
  * @property {string} name
  * @property {string} typeName
+ */
+
+/**
+ * @typedef {Object} Property
+ * @property {PropertyDefinition} definition
  * @property {*} value
  */
 
@@ -17,12 +22,12 @@ export function makeDb() {
         .addColumn("id", lf.Type.INTEGER)
         .addColumn("name", lf.Type.STRING)
         .addColumn("superId", lf.Type.INTEGER)
-        .addPrimaryKey([{name: "id",'autoIncrement': true, order: lf.Order.DESC}])
+        .addPrimaryKey([{name: "id", 'autoIncrement': true, order: lf.Order.DESC}])
         .addNullable(["superId"])
         .addForeignKey("fk_superId", {
             local: "superId",
             ref: "Class.id"
-        })      
+        })
         .addUnique('uq_name', ['name'])
 
     schemaBuilder.createTable("Property")
@@ -87,8 +92,10 @@ function getSuperClassName(thing) {
 function getProperties(thing) {
     return Object.entries(thing)
         .map(([key, value]) => ({
-            name: key,
-            typeName: getThingTypeName(value),
+            definition: {
+                name: key,
+                typeName: getThingTypeName(value)
+            },
             value: value
         }))
 }
@@ -123,7 +130,9 @@ async function classWithNameExists(name, db) {
  * @return {Promise}
  */
 export async function store(thing, db) {
-    if ( !(await classWithNameExists(getClassName(thing), db)) ) { await insertClassFor(thing, db) }
+    if (!(await classWithNameExists(getClassName(thing), db))) {
+        await insertClassFor(thing, db)
+    }
 }
 
 /**
@@ -133,15 +142,17 @@ export async function store(thing, db) {
  */
 async function insertClassFor(thing, db) {
     let superClassName = getSuperClassName(thing);
-    
+
     let superClassID = null;
-    if (superClassName !== null) { superClassID = await tryGetClassIdByName(superClassName, db) }
+    if (superClassName !== null) {
+        superClassID = await tryGetClassIdByName(superClassName, db)
+    }
 
     let class_table = db.getSchema().table('Class');
     let class_row = class_table.createRow({
-        name: getClassName(thing),
-        superId: superClassID,
-    });
+                                              name: getClassName(thing),
+                                              superId: superClassID,
+                                          });
 
     await db.insertOrReplace().into(class_table).values([class_row]).exec();
 }
