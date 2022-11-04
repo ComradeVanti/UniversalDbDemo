@@ -15,7 +15,10 @@ export function getThingTypeName(thing) {
  * @return {string | null}
  */
 export function getSuperClassName(thing) {
-    let name = Object.getPrototypeOf(Object.getPrototypeOf(thing)).constructor.name
+    let superClass = Object.getPrototypeOf(Object.getPrototypeOf(thing))
+    let name = superClass.constructor.name
+    // If the object inherits directly from "Object",
+    // it has no super-class
     return name === "Object" ? null : name;
 }
 
