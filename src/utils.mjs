@@ -82,7 +82,7 @@ export async function propertyExistsInClass(propertyDef, className, db) {
 /**
  * @param {*} thing
  * @param {lf.Database} db
- * @return {Promise<string|null>}
+ * @return {Promise<TypeLabel|null>}
  */
 export async function tryGetTypeLabelFor(thing, db) {
     let typeName = getThingTypeName(thing)
@@ -94,6 +94,33 @@ export async function tryGetTypeLabelFor(thing, db) {
         if (classId === null) return null;
         return "Ref " + classId;
     }
+}
+
+/**
+ * @param {number} classId
+ * @param {number} objectId
+ * @param {lf.Database} db
+ * @return {*|null}
+ */
+function tryGetObject(classId, objectId, db){
+    throw  "Not implemented"
+}
+
+/**
+ * @param {string} value
+ * @param {TypeLabel} typeLabel
+ * @param {lf.Database} db
+ * @return {Promise<*|null>}
+ */
+export async function tryParseAs(value, typeLabel, db) {
+    // Reference-properties start with "Ref"
+    if (typeLabel.startsWith("Ref")) {
+        // The class-id is the number after the "Ref "
+        let classId = parseInt( typeLabel.substring(typeLabel.indexOf(" ") + 1))
+        let objectId = parseInt(value)
+        return await tryGetObject(classId, objectId, db)
+    } else
+        return JSON.parse(value)
 }
 
 /**

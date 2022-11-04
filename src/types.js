@@ -9,3 +9,7 @@
  * @property {PropertyDefinition} definition
  * @property {*} value
  */
+
+/**
+ * @typedef {string} TypeLabel
+ */
