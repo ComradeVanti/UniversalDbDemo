@@ -1,4 +1,4 @@
-import { classTableName} from "./constants.mjs";
+import {classTableName, propertyTableName} from "./constants.mjs";
 
 /**
  * @param {*} thing
@@ -32,6 +32,26 @@ export function getProperties(thing) {
             },
             value: value
         }))
+}
+
+/**
+ * @param {PropertyDefinition} propertyDef
+ * @param {string} className
+ * @param {lf.Database} db
+ * @return {Promise<boolean>}
+ */
+export async function propertyExistsInClass(propertyDef, className, db) {
+    let classId = await tryGetClassIdByName(className, db);
+    // If the class does not exist, it does not contain the property
+    if (classId === null) return false;
+    let propertyTable = db.getSchema().table(propertyTableName)
+    let rows = await db.select()
+        .from(propertyTable)
+        .where(propertyTable.classId.eq(classId) &&
+                   propertyTable.name.eq(propertyDef.name) &&
+                   propertyTable.type.eq(propertyDef.typeName))
+        .exec()
+    return rows.length === 1
 }
 
 /**
