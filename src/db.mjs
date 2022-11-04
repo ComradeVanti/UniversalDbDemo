@@ -1,6 +1,13 @@
 const classTableName = "Class"
 
 /**
+ * @typedef {Object} Property
+ * @property {string} name
+ * @property {string} typeName
+ * @property {*} value
+ */
+
+/**
  * @return {Promise<lf.Database>}
  */
 export function makeDb() {
@@ -57,10 +64,10 @@ export function makeDb() {
 }
 
 /**
- * @param {Object} thing
+ * @param {*} thing
  * @return {string}
  */
-function getClassName(thing) {
+function getThingTypeName(thing) {
     return thing.constructor.name
 }
 
@@ -71,6 +78,19 @@ function getClassName(thing) {
 function getSuperClassName(thing) {
     let name = Object.getPrototypeOf(Object.getPrototypeOf(thing)).constructor.name
     return name === "Object" ? null : name;
+}
+
+/**
+ * @param {Object} thing
+ * @return {Property[]}
+ */
+function getProperties(thing) {
+    return Object.entries(thing)
+        .map(([key, value]) => ({
+            name: key,
+            typeName: getThingTypeName(value),
+            value: value
+        }))
 }
 
 /**
