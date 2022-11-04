@@ -54,6 +54,14 @@ export function makeDb() {
 }
 
 /**
+ * @param {Object} thing
+ * @return {string}
+ */
+function getClassName(thing) {
+    return thing.constructor.name
+}
+
+/**
  * @param {*} thing
  * @param {lf.Database} db
  * @return {Promise}
