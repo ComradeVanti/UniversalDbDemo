@@ -16,6 +16,7 @@ export function makeDb() {
             local: "superId",
             ref: "Class.id"
         })
+        .addUnique('uq_name', ['name'])
 
     schemaBuilder.createTable("Property")
         .addColumn("id", lf.Type.INTEGER)
