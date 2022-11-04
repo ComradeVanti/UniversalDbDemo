@@ -10,12 +10,12 @@ export function makeDb() {
         .addColumn("id", lf.Type.INTEGER)
         .addColumn("name", lf.Type.STRING)
         .addColumn("superId", lf.Type.INTEGER)
-        .addPrimaryKey(["id"])
+        .addPrimaryKey([{name: "id",'autoIncrement': true, order: lf.Order.DESC}])
         .addNullable(["superId"])
         .addForeignKey("fk_superId", {
             local: "superId",
             ref: "Class.id"
-        })
+        })      
         .addUnique('uq_name', ['name'])
 
     schemaBuilder.createTable("Property")
@@ -98,10 +98,30 @@ async function classWithNameExists(name, db) {
 }
 
 /**
- * @param {*} thing
+ * @param {Object} thing
  * @param {lf.Database} db
  * @return {Promise}
  */
-export function store(thing, db) {
-    throw "No"
+export async function store(thing, db) {
+    if ( !(await classWithNameExists(getClassName(thing), db)) ) { await insertClassFor(thing, db) }
+}
+
+/**
+ * @param {Object} thing
+ * @param {lf.Database} db
+ * @return {Promise}
+ */
+async function insertClassFor(thing, db) {
+    let superClassName = getSuperClassName(thing);
+    
+    let superClassID = null;
+    if (superClassName !== null) { superClassID = await tryGetClassIdByName(superClassName, db) }
+
+    let class_table = db.getSchema().table('Class');
+    let class_row = class_table.createRow({
+        name: getClassName(thing),
+        superId: superClassID,
+    });
+
+    await db.insertOrReplace().into(class_table).values([class_row]).exec();
 }
