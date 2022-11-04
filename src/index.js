@@ -53,6 +53,4 @@ window.onload = async () => {
     await Db.store(michelle, instance)
     await Db.store(ramon, instance)
     await Db.store(michael, instance)
-
-    console.log(instance)
 }
