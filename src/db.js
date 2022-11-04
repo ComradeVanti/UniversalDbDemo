@@ -44,3 +44,47 @@ schemaBuilder.createTable("Value")
         local: "objectId",
         ref: "Object.id"
     })
+
+schemaBuilder.createTable("Class_Rel")
+    .addColumn("id", lf.Type.INTEGER)
+    .addColumn("formClassId", lf.Type.INTEGER)
+    .addColumn("toClassId", lf.Type.INTEGER)
+    .addColumn("propertyId", lf.Type.INTEGER)
+    .addPrimaryKey(["id"])
+    .addForeignKey("fk_fromClassId", {
+        local: "fromClassId",
+        ref: "Class.id"
+    })
+    .addForeignKey("fk_tolassId", {
+        local: "toClassId",
+        ref: "Class.id"
+    })
+    .addForeignKey("fk_propertyId", {
+        local: "propertyId",
+        ref: "Property.id"
+    })
+
+schemaBuilder.createTable("Object_Rel")
+    .addColumn("id", lf.Type.INTEGER)
+    .addColumn("fromObjectId", lf.Type.INTEGER)
+    .addColumn("toObjectId", lf.Type.INTEGER)
+    .addColumn("classRelId", lf.Type.INTEGER)
+    .addColumn("valueId", lf.Type.INTEGER)
+    .addPrimaryKey(["id"])
+    .addForeignKey("fk_fromObjectId", {
+        local: "fromObjectId",
+        ref: "Object.id"
+    })
+    .addForeignKey("fk_toObjectId", {
+        local: "toObjectId",
+        ref: "Object.id"
+    })
+    .addForeignKey("fk_classRelId", {
+        local: "classRelId",
+        ref: "Class_Rel.id"
+    })
+    .addForeignKey("fk_valueId", {
+        local: "valueId",
+        ref: "Value.id"
+    })
+    
