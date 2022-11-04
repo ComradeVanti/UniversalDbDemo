@@ -52,3 +52,12 @@ export function makeDb() {
 
     return schemaBuilder.connect();
 }
+
+/**
+ * @param {*} thing
+ * @param {lf.Database} db
+ * @return {Promise}
+ */
+export function store(thing, db) {
+    throw "No"
+}
