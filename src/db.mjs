@@ -84,7 +84,7 @@ async function tryGetClassIdByName(name, db) {
         .from(classTable)
         .where(classTable.name.eq(name))
         .exec();
-    return rows[0].id ?? null
+    return rows[0]?.id ?? null
 }
 
 /**
