@@ -12,5 +12,8 @@
   "bugs": {
     "url": "https://github.com/ComradeVanti/UniversalDbDemo/issues"
   },
-  "homepage": "https://github.com/ComradeVanti/UniversalDbDemo#readme"
+  "homepage": "https://github.com/ComradeVanti/UniversalDbDemo#readme",
+  "dependencies": {
+    "lovefield": "^2.1.12"
+  }
 }
