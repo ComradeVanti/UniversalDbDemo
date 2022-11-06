@@ -1,7 +1,8 @@
 import {classTableName} from "./constants.mjs";
 import {
     classWithNameExists, getSuperClassName,
-    tryGetClassIdByName, getThingTypeName
+    tryGetClassIdByName, getThingTypeName,
+    getProperties, propertyExistsInClass,
 } from "./utils.mjs"
 
 /**
@@ -67,8 +68,10 @@ export function makeDb() {
  */
 export async function store(thing, db) {
     if (!(await classWithNameExists(getThingTypeName(thing), db))) {
-        await insertClassFor(thing, db)
+        await insertClassFor(thing, db);
     }
+
+    await insertProperties(thing, db);
 }
 
 /**
@@ -86,9 +89,38 @@ async function insertClassFor(thing, db) {
 
     let class_table = db.getSchema().table('Class');
     let class_row = class_table.createRow({
-                                              name: getThingTypeName(thing),
-                                              superId: superClassID,
-                                          });
+        name: getThingTypeName(thing),
+        superId: superClassID,
+    });
 
     await db.insertOrReplace().into(class_table).values([class_row]).exec();
+}
+
+/**
+ * @param {Object} thing
+ * @param {lf.Database} db
+ * @return {Promise}
+ */
+async function insertProperties(thing, db) {
+    let propertyProps = getProperties(thing);
+    
+    for (let elem of propertyProps) {
+        let property_table = null;
+        let property_row = null;
+
+        let className = getThingTypeName(thing);
+        let classId = await tryGetClassIdByName(className, db);
+
+        if (await propertyExistsInClass(elem.definition, className, db) === false) {
+            property_table = db.getSchema().table('Property');
+            property_row = property_table.createRow({
+                name: elem.definition.name,
+                classId: classId,
+                type: elem.definition.typeName
+            });
+
+            let result = await db.insertOrReplace().into(property_table).values([property_row]).exec();
+        }
+    }
+
 }
