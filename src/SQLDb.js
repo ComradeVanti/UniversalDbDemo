@@ -15,7 +15,7 @@ const ValueTableName = "Value"
  * @property {Id} id
  * @property {string} name
  * @property {Id} classId
- * @property {string} value
+ * @property {string} type
  */
 
 export default class SQLDb {
@@ -23,14 +23,14 @@ export default class SQLDb {
     /**
      * @type{lf.Database}
      */
-    db
+    #db
 
 
     /**
      * @param {lf.Database} db
      */
     constructor(db) {
-        this.db = db
+        this.#db = db
     }
 
 
@@ -96,7 +96,7 @@ export default class SQLDb {
      * @return {lf.schema.Table}
      */
     #getTable(name) {
-        return this.db.getSchema().table(name)
+        return this.#db.getSchema().table(name)
     }
 
     /**
@@ -119,7 +119,7 @@ export default class SQLDb {
      */
     async tryGetClassByName(name) {
         let table = this.#getClassTable()
-        let rows = await this.db.select()
+        let rows = await this.#db.select()
             .from(table)
             .where(table.name.eq(name))
             .exec()
@@ -132,7 +132,7 @@ export default class SQLDb {
      */
     async tryGetClassById(id) {
         let table = this.#getClassTable()
-        let rows = await this.db.select()
+        let rows = await this.#db.select()
             .from(table)
             .where(table.id.eq(id))
             .exec()
@@ -146,12 +146,63 @@ export default class SQLDb {
      */
     async tryGetPropertyByName(classId, name) {
         let table = this.#getPropertyTable()
-        let rows = await this.db.select()
+        let rows = await this.#db.select()
             .from(table)
             .where(table.classId.eq(classId) && table.name.eq(name))
             .exec()
         return rows[0] ?? null
     }
+
+    /**
+     * @param {Id} classId
+     * @return {Promise<PropertyEntry[]>}
+     */
+    tryGetPropertiesByClassId(classId) {
+        let table = this.#getPropertyTable()
+        return this.#db.select()
+            .from(table)
+            .where(table.classId.eq(classId))
+            .exec()
+    }
+
+    /**
+     * @param {string} name
+     * @param {Id} classId
+     * @param {string} type
+     * @return {Promise<Id|null>}
+     */
+    async tryInsertProperty(name, classId, type) {
+        try {
+            let table = this.#getPropertyTable()
+            let row = await table.createRow({name, classId, value: type});
+            let results = await this.#db.insert().into(table).values([row]).exec();
+            return results[0].id
+        } catch (e) {
+            return null
+        }
+    }
+
+    /**
+     * @param {Id} id
+     * @param {string} name
+     * @param {Id} classId
+     * @param {string} type
+     * @return {Promise}
+     */
+    async tryUpdateProperty(id, name, classId, type) {
+        try {
+            let table = this.#getPropertyTable()
+            await this.#db.update(table)
+                .where(table.id.eq(id))
+                .set(table.name, name)
+                .set(table.classId, classId)
+                .set(table.value, type)
+                .exec()
+        } catch (e) {
+            return null
+        }
+    }
+
 
     /**
      * @param {string} name
@@ -162,7 +213,7 @@ export default class SQLDb {
         try {
             let table = this.#getClassTable()
             let row = table.createRow({name, superId});
-            let results = await this.db.insert().into(table).values([row]).exec();
+            let results = await this.#db.insert().into(table).values([row]).exec();
             return results[0].id
         } catch (e) {
             return null
@@ -178,48 +229,10 @@ export default class SQLDb {
     async tryUpdateClass(id, name, superId) {
         try {
             let table = this.#getClassTable()
-            await this.db.update(table)
+            await this.#db.update(table)
                 .where(table.id.eq(id))
                 .set(table.name, name)
                 .set(table.superId, superId)
-                .exec()
-        } catch (e) {
-            return null
-        }
-    }
-
-    /**
-     * @param {string} name
-     * @param {Id} classId
-     * @param {string} value
-     * @return {Promise<Id|null>}
-     */
-    async tryInsertProperty(name, classId, value) {
-        try {
-            let table = this.#getPropertyTable()
-            let row = await table.createRow({name, classId, value});
-            let results = await this.db.insert().into(table).values([row]).exec();
-            return results[0].id
-        } catch (e) {
-            return null
-        }
-    }
-
-    /**
-     * @param {Id} id
-     * @param {string} name
-     * @param {Id} classId
-     * @param {string} value
-     * @return {Promise}
-     */
-    async tryUpdateProperty(id, name, classId, value) {
-        try {
-            let table = this.#getPropertyTable()
-            await this.db.update(table)
-                .where(table.id.eq(id))
-                .set(table.name, name)
-                .set(table.classId, classId)
-                .set(table.value, value)
                 .exec()
         } catch (e) {
             return null

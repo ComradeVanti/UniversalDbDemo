@@ -4,33 +4,21 @@ import {
     getThingTypeName,
     UnknownType
 } from "./typeUtils.mjs";
-
-const ClassTableName = "Class"
-const PropertyTableName = "Property"
-const ObjectTableName = "Object"
-const ValueTableName = "Value"
-
-/**
- * @typedef {Object} PropertyEntry
- * @property {Id} id
- * @property {string} name
- * @property {Id} classId
- * @property {string} value
- */
+import SQLDb from "./SQLDb.js";
 
 export default class UniversalDb {
 
     /**
-     * @type{lf.Database}
+     * @type{SQLDb}
      */
-    db
+    #sql
 
 
     /**
-     * @param {lf.Database} db
+     * @param {SQLDb} sql
      */
-    constructor(db) {
-        this.db = db
+    constructor(sql) {
+        this.#sql = sql
     }
 
 
@@ -38,146 +26,18 @@ export default class UniversalDb {
      * @return {Promise<UniversalDb>}
      */
     static async makeEmpty() {
-
-        let schemaBuilder = lf.schema.create("main", 1);
-        schemaBuilder.createTable(ClassTableName)
-            .addColumn("id", lf.Type.INTEGER)
-            .addColumn("name", lf.Type.STRING)
-            .addColumn("superId", lf.Type.INTEGER)
-            .addPrimaryKey([{name: "id", 'autoIncrement': true, order: lf.Order.DESC}])
-            .addNullable(["superId"])
-            .addForeignKey("fk_superId", {
-                local: "superId",
-                ref: "Class.id"
-            })
-            .addUnique('uq_name', ['name'])
-
-        schemaBuilder.createTable(PropertyTableName)
-            .addColumn("id", lf.Type.INTEGER)
-            .addColumn("name", lf.Type.STRING)
-            .addColumn("classId", lf.Type.INTEGER)
-            .addColumn("type", lf.Type.STRING)
-            .addPrimaryKey([{name: "id", 'autoIncrement': true, order: lf.Order.DESC}])
-            .addForeignKey("fk_classId", {
-                local: "classId",
-                ref: "Class.id"
-            })
-
-        schemaBuilder.createTable(ObjectTableName)
-            .addColumn("id", lf.Type.INTEGER)
-            .addColumn("classId", lf.Type.INTEGER)
-            .addPrimaryKey([{name: "id", 'autoIncrement': true, order: lf.Order.DESC}])
-            .addForeignKey("fk_classId", {
-                local: "classId",
-                ref: "Class.id"
-            })
-
-        schemaBuilder.createTable(ValueTableName)
-            .addColumn("id", lf.Type.INTEGER)
-            .addColumn("propId", lf.Type.INTEGER)
-            .addColumn("objectId", lf.Type.INTEGER)
-            .addColumn("value", lf.Type.STRING)
-            .addPrimaryKey([{name: "id", 'autoIncrement': true, order: lf.Order.DESC}])
-            .addForeignKey("fk_propId", {
-                local: "propId",
-                ref: "Property.id"
-            })
-            .addForeignKey("fk_objectId", {
-                local: "objectId",
-                ref: "Object.id"
-            })
-
-        let db = await schemaBuilder.connect()
-        return new UniversalDb(db);
+        let sql = await SQLDb.makeEmpty()
+        return new UniversalDb(sql);
     }
 
-    /**
-     * @param {string} name
-     * @return {lf.schema.Table}
-     */
-    #getTable(name) {
-        return this.db.getSchema().table(name)
-    }
-
-    /**
-     * @return {lf.schema.Table}
-     */
-    #getClassTable() {
-        return this.#getTable(ClassTableName)
-    }
-
-    /**
-     * @return {lf.schema.Table}
-     */
-    #getPropertyTable() {
-        return this.#getTable(PropertyTableName)
-    }
-
-    /**
-     * @param {Id} classId
-     * @param {string} name
-     * @return {Promise<PropertyEntry|null>}
-     */
-    async tryGetPropertyEntryByName(classId, name) {
-        let propertyTable = this.#getPropertyTable()
-        let rows = await this.db.select()
-            .from(propertyTable)
-            .where(propertyTable.classId.eq(classId) && propertyTable.name.eq(name))
-            .exec()
-        return rows[0] ?? null
-    }
-
-    /**
-     * @param {string} name
-     * @return {Promise<Id|null>}
-     */
-    async tryGetClassIdByName(name) {
-        let classTable = this.#getClassTable()
-        let rows = await this.db.select(classTable.id)
-            .from(classTable)
-            .where(classTable.name.eq(name))
-            .exec();
-        return rows[0]?.id ?? null
-    }
-
-    /**
-     * @param {string} name
-     * @return {Promise<Id[]>}
-     */
-    async getPropertyIdsForName(name) {
-        let propertyTable = this.#getPropertyTable()
-        let rows = await this.db.select(propertyTable.id)
-            .from(propertyTable)
-            .where(propertyTable.name.eq(name))
-            .exec()
-        return rows.map(row => row.id)
-    }
-
-    /**
-     * @param {string} propertyName
-     * @param {string} className
-     * @return {Promise<Id|null>}
-     */
-    async tryGetPropertyId(propertyName, className) {
-        let propertyTable = this.#getPropertyTable()
-        let rows = await this.db.select(propertyTable.id)
-            .from(propertyTable)
-            .where(propertyTable.name.eq(propertyName))
-            .exec()
-        return rows.map(row => row.id)[0] ?? null
-    }
 
     /**
      * @param {Id} classId
      * @return {Promise<PropertyDefinition[]>}
      */
     async getPropertyDefinitionsByClassId(classId) {
-        let propertyTable = this.#getPropertyTable()
-        let rows = await this.db.select()
-            .from(propertyTable)
-            .where(propertyTable.classId.eq(classId))
-            .exec()
-        return rows.map(row => ({name: row.name, typeName: row.type}))
+        let entries = await this.#sql.tryGetPropertiesByClassId(classId)
+        return entries.map(row => ({name: row.name, typeName: row.type}))
     }
 
     /**
@@ -194,9 +54,9 @@ export default class UniversalDb {
      * @return {Promise<ClassDefinition|null>}
      */
     async tryGetClassDefinitionByName(name) {
-        let classId = await this.tryGetClassIdByName(name)
-        if (classId === null) return null
-        return this.tryGetClassDefinitionById(classId)
+        let entry = await this.#sql.tryGetClassByName(name)
+        if (entry === null) return null
+        return this.tryGetClassDefinitionById(entry.id)
     }
 
     /**
@@ -205,10 +65,10 @@ export default class UniversalDb {
      * @return {Promise<PropertyDefinition|null>}
      */
     async tryGetClassProperty(propertyName, className) {
-        let classId = await this.tryGetClassIdByName(className);
+        let entry = await this.#sql.tryGetClassByName(className);
         // If the class does not exist, we can't get the property
-        if (classId === null) return null;
-        let properties = await this.getPropertyDefinitionsByClassId(classId)
+        if (entry === null) return null;
+        let properties = await this.getPropertyDefinitionsByClassId(entry.id)
         return properties.find(it => it.name === propertyName) ?? null
     }
 
@@ -246,8 +106,8 @@ export default class UniversalDb {
      * @return {Promise<boolean>}
      */
     async classWithNameExists(name) {
-        let id = await this.tryGetClassIdByName(name)
-        return id !== null
+        let entry = await this.#sql.tryGetClassByName(name)
+        return entry !== null
     }
 
     /**
@@ -268,7 +128,7 @@ export default class UniversalDb {
                                                   superId: superClassID,
                                               });
 
-        await this.db.insertOrReplace().into(class_table).values([class_row]).exec();
+        await this.#sql.insertOrReplace().into(class_table).values([class_row]).exec();
     }
 
     /**
@@ -277,13 +137,13 @@ export default class UniversalDb {
      */
     async #insertProperties(thing) {
         let propertyProps = getProperties(thing);
-    
+
         for (let elem of propertyProps) {
             let className = getThingTypeName(thing);
             let classId = await this.tryGetClassIdByName(className);
 
             if (elem.definition.typeName === "Unknown") {
-                // property name is unknown 
+                // property name is unknown
                 if (await this.propertyExistsInClass(elem.definition.name, className) === false) {
                     // only store property, with type is undefined, if it doesn't exist already
                     await this.#storePropertyToDB(elem, classId);
@@ -294,7 +154,7 @@ export default class UniversalDb {
                     // modifies property if property type is unknown yet
                     await this.#modifyPropertyInDB(elem, classId);
                 } else if (await this.propertyExistsInClass(elem.definition.name, className)) {
-                    // skip if property exist already 
+                    // skip if property exist already
                     continue;
                 } else {
                     // store property (property type is known and doesn't exist yet)
@@ -309,14 +169,15 @@ export default class UniversalDb {
      * @param {Id} classId
      */
     async #storePropertyToDB(elem, classId) {
-        let property_table = this.db.getSchema().table('Property');
+        let property_table = this.#sql.getSchema().table('Property');
         let property_row = property_table.createRow({
-            name: elem.definition.name,
-            classId: classId,
-            type: elem.definition.typeName
-        });
-        await this.db.insertOrReplace().into(property_table).values([property_row]).exec();
+                                                        name: elem.definition.name,
+                                                        classId: classId,
+                                                        type: elem.definition.typeName
+                                                    });
+        await this.#sql.insertOrReplace().into(property_table).values([property_row]).exec();
     }
+
     /**
      * @param {Property} elem
      * @param {Id} classId
@@ -324,14 +185,14 @@ export default class UniversalDb {
     async #modifyPropertyInDB(elem, classId) {
         let property = await this.tryGetPropertyEntryByName(classId, elem.definition.name);
 
-        let property_table = this.db.getSchema().table('Property');
+        let property_table = this.#sql.getSchema().table('Property');
         let property_row = property_table.createRow({
-            name: elem.definition.name,
-            classId: classId,
-            type: elem.definition.typeName,
-            id: property.id
-        });
-        await this.db.insertOrReplace().into(property_table).values([property_row]).exec();
+                                                        name: elem.definition.name,
+                                                        classId: classId,
+                                                        type: elem.definition.typeName,
+                                                        id: property.id
+                                                    });
+        await this.#sql.insertOrReplace().into(property_table).values([property_row]).exec();
     }
 
     /**
