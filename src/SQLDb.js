@@ -24,6 +24,14 @@ const ValueTableName = "Value"
  * @property {Id} classId
  */
 
+/**
+ * @typedef {Object} ValueEntry
+ * @property {Id} id
+ * @property {Id} propId
+ * @property {Id} objectId
+ * @property {string} value
+ */
+
 export default class SQLDb {
 
     /**
@@ -124,6 +132,13 @@ export default class SQLDb {
      */
     #getObjectTable() {
         return this.#getTable(ObjectTableName)
+    }
+
+    /**
+     * @return {lf.schema.Table}
+     */
+    #getValueTable() {
+        return this.#getTable(ValueTableName)
     }
 
     /**
@@ -272,6 +287,36 @@ export default class SQLDb {
      */
     async tryGetObjectById(id) {
         let table = this.#getObjectTable()
+        let rows = await this.#db.select()
+            .from(table)
+            .where(table.id.eq(id))
+            .exec()
+        return rows[0] ?? null
+    }
+
+    /**
+     * @param {Id} propId
+     * @param {Id} objectId
+     * @param {string} value
+     * @return {Promise<Id|null>}
+     */
+    async tryInsertValue(propId, objectId, value) {
+        try {
+            let table = this.#getValueTable()
+            let row = await table.createRow({propId, objectId, value});
+            let results = await this.#db.insert().into(table).values([row]).exec();
+            return results[0].id
+        } catch (e) {
+            return null
+        }
+    }
+
+    /**
+     * @param {Id} id
+     * @return {Promise<ValueEntry|null>}
+     */
+    async tryGetValueById(id) {
+        let table = this.#getValueTable()
         let rows = await this.#db.select()
             .from(table)
             .where(table.id.eq(id))
