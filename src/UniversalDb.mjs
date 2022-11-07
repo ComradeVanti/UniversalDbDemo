@@ -183,12 +183,29 @@ export default class UniversalDb {
      * @param {NamedObject} thing
      * @return {Promise}
      */
+    async #insertObject(thing) {
+        let className = getThingTypeName(thing);
+        let classEntry = await this.#sql.tryGetClassByName(className);
+
+        let result = await this.#sql.tryInsertObject(classEntry.id);
+        if (result === null) {
+            throw("Something failed");
+        } else {
+            console.log(`Object with id ${result} created`);
+        }
+    }
+
+    /**
+     * @param {NamedObject} thing
+     * @return {Promise}
+     */
     async store(thing) {
         if (!(await this.classWithNameExists(getThingTypeName(thing)))) {
             await this.#insertClassFor(thing);
         }
 
         await this.#insertProperties(thing);
+        await this.#insertObject(thing);
     }
 
 }
