@@ -96,7 +96,7 @@ export function typeLabelFor(thing) {
  * @param {lf.Database} db
  * @return {*|null}
  */
-function tryGetObject(classId, objectId, db){
+function tryGetObject(classId, objectId, db) {
     throw  "Not implemented"
 }
 
@@ -110,7 +110,7 @@ export async function tryParseAs(value, typeLabel, db) {
     // Reference-properties start with "Ref"
     if (typeLabel.startsWith("Ref")) {
         // The class-id is the number after the "Ref "
-        let classId = parseInt( typeLabel.substring(typeLabel.indexOf(" ") + 1))
+        let classId = parseInt(typeLabel.substring(typeLabel.indexOf(" ") + 1))
         let objectId = parseInt(value)
         return await tryGetObject(classId, objectId, db)
     } else
