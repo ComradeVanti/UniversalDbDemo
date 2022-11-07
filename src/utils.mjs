@@ -48,6 +48,55 @@ export function classDefinitionOf(obj) {
 }
 
 /**
+ * @param {string} name
+ * @param {lf.Database} db
+ * @return {Promise<Id|null>}
+ */
+export async function tryGetClassIdByName(name, db) {
+    let classTable = getClassTable(db)
+    let rows = await db.select(classTable.id)
+        .from(classTable)
+        .where(classTable.name.eq(name))
+        .exec();
+    return rows[0]?.id ?? null
+}
+
+/**
+ * @param {Id} classId
+ * @param {lf.Database} db
+ * @return {Promise<PropertyDefinition[]>}
+ */
+export async function getPropertyDefinitionsByClassId(classId, db) {
+    let propertyTable = getPropertyTable(db)
+    let rows = await db.select()
+        .from(propertyTable)
+        .where(propertyTable.classId.eq(classId))
+        .exec()
+    return rows.map(row => ({name: row.name, typeName: row.type}))
+}
+
+/**
+ * @param {Id} classId
+ * @param {lf.Database} db
+ * @return {Promise<ClassDefinition|null>}
+ */
+export async function tryGetClassDefinitionById(classId, db) {
+    let properties = await getPropertyDefinitionsByClassId(classId, db)
+    return {name, properties}
+}
+
+/**
+ * @param {string} name
+ * @param {lf.Database} db
+ * @return {Promise<ClassDefinition|null>}
+ */
+export async function tryGetClassDefinitionByName(name, db) {
+    let classId = await tryGetClassIdByName(name, db)
+    if (classId === null) return null
+    return tryGetClassDefinitionById(classId, db)
+}
+
+/**
  * @param {NamedObject} obj
  * @return {string|null}
  */
@@ -85,15 +134,8 @@ async function tryGetClassProperty(propertyName, className, db) {
     let classId = await tryGetClassIdByName(className, db);
     // If the class does not exist, we can't get the property
     if (classId === null) return null;
-    let propertyTable = getPropertyTable(db)
-    let row = (await db.select()
-        .from(propertyTable)
-        .where(propertyTable.classId.eq(classId) &&
-                   propertyTable.name.eq(propertyName))
-        .exec())[0]
-    // The property was not found
-    if (row === null || row === undefined) return null
-    return {name: row.name, typeName: row.type}
+    let properties = await getPropertyDefinitionsByClassId(classId, db)
+    return properties.find(it => it.name === propertyName) ?? null
 }
 
 /**
@@ -126,20 +168,6 @@ export async function propertyIsUnknownInClass(propertyName, className, db) {
  */
 function tryGetObject(classId, objectId, db) {
     throw  "Not implemented"
-}
-
-/**
- * @param {string} name
- * @param {lf.Database} db
- * @return {Promise<number | null>}
- */
-export async function tryGetClassIdByName(name, db) {
-    let classTable = getClassTable(db)
-    let rows = await db.select(classTable.id)
-        .from(classTable)
-        .where(classTable.name.eq(name))
-        .exec();
-    return rows[0]?.id ?? null
 }
 
 /**

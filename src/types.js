@@ -3,6 +3,10 @@
  */
 
 /**
+ * @typedef {number} Id
+ */
+
+/**
  * @typedef {Object} PropertyDefinition
  * @property {string} name
  * @property {string} typeName
