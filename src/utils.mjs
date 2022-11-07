@@ -62,6 +62,20 @@ export async function tryGetClassIdByName(name, db) {
 }
 
 /**
+ * @param {string} name
+ * @param {lf.Database} db
+ * @return {Promise<Id[]>}
+ */
+export async function getPropertyIdsForName(name, db){
+    let propertyTable = getPropertyTable(db)
+    let rows = await db.select(propertyTable.id)
+        .from(propertyTable)
+        .where(propertyTable.name.eq(name))
+        .exec()
+    return rows.map(row => row.id)
+}
+
+/**
  * @param {Id} classId
  * @param {lf.Database} db
  * @return {Promise<PropertyDefinition[]>}
