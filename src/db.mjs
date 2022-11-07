@@ -3,6 +3,7 @@ import {
     classWithNameExists, getSuperClassName,
     tryGetClassIdByName, getThingTypeName,
     getProperties, propertyExistsInClass,
+    propertyIsUnknownInClass,
 } from "./utils.mjs"
 
 /**
@@ -111,15 +112,35 @@ async function insertProperties(thing, db) {
         let className = getThingTypeName(thing);
         let classId = await tryGetClassIdByName(className, db);
 
-        if (await propertyExistsInClass(elem.definition, className, db) === false) {
-            property_table = db.getSchema().table('Property');
-            property_row = property_table.createRow({
-                name: elem.definition.name,
-                classId: classId,
-                type: elem.definition.typeName
-            });
+        console.log(elem);
 
-            let result = await db.insertOrReplace().into(property_table).values([property_row]).exec();
+        if (elem.definition.typeName === "Unknown") {
+            // property name is unknown
+            if (await propertyExistsInClass(elem.definition.name, className, db) === false) {
+                property_table = db.getSchema().table('Property');
+                property_row = property_table.createRow({
+                    name: elem.definition.name,
+                    classId: classId,
+                    type: elem.definition.typeName
+                });
+                let result = await db.insertOrReplace().into(property_table).values([property_row]).exec();
+                console.log(result);
+            }
+        } else {
+            if (await propertyIsUnknownInClass(elem.definition.name, className, db)) {
+                console.log("modify existig data");
+            } else if (await propertyExistsInClass(elem.definition.name, className, db)) {
+                continue;
+            } else {
+                property_table = db.getSchema().table('Property');
+                property_row = property_table.createRow({
+                    name: elem.definition.name,
+                    classId: classId,
+                    type: elem.definition.typeName
+                });
+                let result = await db.insertOrReplace().into(property_table).values([property_row]).exec();
+                console.log(result);
+            }
         }
     }
 
