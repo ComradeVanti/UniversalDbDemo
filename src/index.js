@@ -39,8 +39,8 @@ class Person {
 }
 
 window.onload = async () => {
-    let Db = await import("./db.mjs")
-    let instance = await Db.makeDb();
+    let dbModule = await import("./UniversalDb.mjs")
+    let db = dbModule.default.makeEmpty()
 
     let greenCar = new Car("Green")
     let redCar = new Car("Red")
@@ -50,7 +50,7 @@ window.onload = async () => {
     let ramon = new Person("Ramon", redCar, greenCar)
     let michael = new Person("Michi", null, yellowCar)
 
-    await Db.store(michelle, instance)
-    await Db.store(ramon, instance)
-    await Db.store(michael, instance)
+    await db.store(michelle)
+    await db.store(ramon)
+    await db.store(michael)
 }
