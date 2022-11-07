@@ -18,6 +18,12 @@ const ValueTableName = "Value"
  * @property {string} type
  */
 
+/**
+ * @typedef {Object} ObjectEntry
+ * @property {Id} id
+ * @property {Id} classId
+ */
+
 export default class SQLDb {
 
     /**
@@ -111,6 +117,13 @@ export default class SQLDb {
      */
     #getPropertyTable() {
         return this.#getTable(PropertyTableName)
+    }
+
+    /**
+     * @return {lf.schema.Table}
+     */
+    #getObjectTable() {
+        return this.#getTable(ObjectTableName)
     }
 
     /**
@@ -236,6 +249,34 @@ export default class SQLDb {
         } catch (e) {
             return null
         }
+    }
+
+    /**
+     * @param {Id} classId
+     * @return {Promise<Id|null>}
+     */
+    async tryInsertObject(classId) {
+        try {
+            let table = this.#getObjectTable()
+            let row = await table.createRow({classId});
+            let results = await this.#db.insert().into(table).values([row]).exec();
+            return results[0].id
+        } catch (e) {
+            return null
+        }
+    }
+
+    /**
+     * @param {Id} id
+     * @return {Promise<ObjectEntry|null>}
+     */
+    async tryGetObjectById(id) {
+        let table = this.#getObjectTable()
+        let rows = await this.#db.select()
+            .from(table)
+            .where(table.id.eq(id))
+            .exec()
+        return rows[0] ?? null
     }
 
 }
