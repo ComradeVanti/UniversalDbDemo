@@ -119,16 +119,15 @@ export default class UniversalDb {
 
         let superClassID = null;
         if (superClassName !== null) {
-            superClassID = await tryGetClassIdByName(superClassName, db)
+            superClassID = await this.#sql.tryGetClassByName(superClassName);
         }
 
-        let class_table = this.#getClassTable()
-        let class_row = class_table.createRow({
-                                                  name: getThingTypeName(thing),
-                                                  superId: superClassID,
-                                              });
-
-        await this.#sql.insertOrReplace().into(class_table).values([class_row]).exec();
+        let result = await this.#sql.tryInsertClass(getThingTypeName(thing), superClassID);
+        if (result === null) {
+            throw("Something failed");
+        } else {
+            console.log(`Class with id ${result} created`);
+        }
     }
 
     /**
@@ -140,59 +139,44 @@ export default class UniversalDb {
 
         for (let elem of propertyProps) {
             let className = getThingTypeName(thing);
-            let classId = await this.tryGetClassIdByName(className);
+            let classEntry = await this.#sql.tryGetClassByName(className);
+            let classId = classEntry.id;
 
             if (elem.definition.typeName === "Unknown") {
                 // property name is unknown
                 if (await this.propertyExistsInClass(elem.definition.name, className) === false) {
                     // only store property, with type is undefined, if it doesn't exist already
-                    await this.#storePropertyToDB(elem, classId);
+                    let result =
+                        await this.#sql.tryInsertProperty(elem.definition.name, classId, elem.definition.typeName);
+                    if (result === null) {
+                        throw("Something failed");
+                    } else {
+                        console.log(`Property with id ${result} created`);
+                    }
                 }
             } else {
                 // property name is known
                 if (await this.propertyIsUnknownInClass(elem.definition.name, className)) {
                     // modifies property if property type is unknown yet
-                    await this.#modifyPropertyInDB(elem, classId);
+                    let propertyEntry = await this.#sql.tryGetPropertyByName(classId, elem.definition.name);
+                    await this.#sql.tryUpdateProperty(
+                        propertyEntry.id, elem.definition.name, classId, elem.definition.typeName
+                    );
                 } else if (await this.propertyExistsInClass(elem.definition.name, className)) {
                     // skip if property exist already
                     continue;
                 } else {
                     // store property (property type is known and doesn't exist yet)
-                    await this.#storePropertyToDB(elem, classId);
+                    let result =
+                        await this.#sql.tryInsertProperty(elem.definition.name, classId, elem.definition.typeName);
+                    if (result === null) {
+                        throw("Something failed");
+                    } else {
+                        console.log(`Property with id ${result} created`);
+                    }
                 }
             }
         }
-    }
-
-    /**
-     * @param {Property} elem
-     * @param {Id} classId
-     */
-    async #storePropertyToDB(elem, classId) {
-        let property_table = this.#sql.getSchema().table('Property');
-        let property_row = property_table.createRow({
-                                                        name: elem.definition.name,
-                                                        classId: classId,
-                                                        type: elem.definition.typeName
-                                                    });
-        await this.#sql.insertOrReplace().into(property_table).values([property_row]).exec();
-    }
-
-    /**
-     * @param {Property} elem
-     * @param {Id} classId
-     */
-    async #modifyPropertyInDB(elem, classId) {
-        let property = await this.tryGetPropertyEntryByName(classId, elem.definition.name);
-
-        let property_table = this.#sql.getSchema().table('Property');
-        let property_row = property_table.createRow({
-                                                        name: elem.definition.name,
-                                                        classId: classId,
-                                                        type: elem.definition.typeName,
-                                                        id: property.id
-                                                    });
-        await this.#sql.insertOrReplace().into(property_table).values([property_row]).exec();
     }
 
     /**
