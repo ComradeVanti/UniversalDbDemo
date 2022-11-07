@@ -7,6 +7,8 @@ import {
 
 const ClassTableName = "Class"
 const PropertyTableName = "Property"
+const ObjectTableName = "Object"
+const ValueTableName = "Value"
 
 export default class UniversalDb {
 
@@ -53,7 +55,7 @@ export default class UniversalDb {
                 ref: "Class.id"
             })
 
-        schemaBuilder.createTable("Object")
+        schemaBuilder.createTable(ObjectTableName)
             .addColumn("id", lf.Type.INTEGER)
             .addColumn("classId", lf.Type.INTEGER)
             .addPrimaryKey([{name: "id", 'autoIncrement': true, order: lf.Order.DESC}])
@@ -62,7 +64,7 @@ export default class UniversalDb {
                 ref: "Class.id"
             })
 
-        schemaBuilder.createTable("Value")
+        schemaBuilder.createTable(ValueTableName)
             .addColumn("id", lf.Type.INTEGER)
             .addColumn("propId", lf.Type.INTEGER)
             .addColumn("objectId", lf.Type.INTEGER)
