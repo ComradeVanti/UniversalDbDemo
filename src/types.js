@@ -1,7 +1,17 @@
 /**
+ * @typedef {Object} NamedObject
+ */
+
+/**
  * @typedef {Object} PropertyDefinition
  * @property {string} name
  * @property {string} typeName
+ */
+
+/**
+ * @typedef {Object} ClassDefinition
+ * @property {string} name
+ * @property {PropertyDefinition[]} properties
  */
 
 /**
