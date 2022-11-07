@@ -192,6 +192,34 @@ export default class UniversalDb {
             throw("Something failed");
         } else {
             console.log(`Object with id ${result} created`);
+            await this.#insertValue(result, thing);
+        }
+    }
+
+    /**
+     * @param {Id} objectId
+     * @param {NamedObject} thing
+     * @return {Promise}
+     */
+    async #insertValue(objectId, thing) {
+        let propertyProps = getProperties(thing);
+        let className = getThingTypeName(thing);
+        let classEntry = await this.#sql.tryGetClassByName(className);
+
+        for (let elem of propertyProps) {
+            let propertyEntry = await this.#sql.tryGetPropertyByName(classEntry.id, elem.definition.name);
+
+            // TODO: set value
+            //      - if value is reference -> create if needed => save id of created object
+            //      - save value as JSON.stringify(value)
+
+            let result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, JSON.stringify(elem.value));
+            if (result === null) {
+                throw("Something failed");
+            } else {
+                console.log(`Value with id ${result} created 
+                    (propId: ${propertyEntry.id}, objectId: ${objectId}, value: ${elem.value})`);
+            }
         }
     }
 
