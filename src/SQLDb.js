@@ -218,17 +218,13 @@ export default class SQLDb {
      * @return {Promise}
      */
     async tryUpdateProperty(id, name, classId, type) {
-        try {
-            let table = this.#getPropertyTable()
-            await this.#db.update(table)
-                .where(table.id.eq(id))
-                .set(table.name, name)
-                .set(table.classId, classId)
-                .set(table.type, type)
-                .exec()
-        } catch (e) {
-            return null
-        }
+        let table = this.#getPropertyTable()
+        await this.#db.update(table)
+            .where(table.id.eq(id))
+            .set(table.name, name)
+            .set(table.classId, classId)
+            .set(table.type, type)
+            .exec()
     }
 
     /**
@@ -254,16 +250,12 @@ export default class SQLDb {
      * @return {Promise}
      */
     async tryUpdateClass(id, name, superId) {
-        try {
-            let table = this.#getClassTable()
-            await this.#db.update(table)
-                .where(table.id.eq(id))
-                .set(table.name, name)
-                .set(table.superId, superId)
-                .exec()
-        } catch (e) {
-            return null
-        }
+        let table = this.#getClassTable()
+        await this.#db.update(table)
+            .where(table.id.eq(id))
+            .set(table.name, name)
+            .set(table.superId, superId)
+            .exec()
     }
 
     /**
