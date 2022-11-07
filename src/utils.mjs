@@ -48,11 +48,12 @@ export function classDefinitionOf(obj) {
 }
 
 /**
- * @param {Object} thing
- * @return {string | null}
+ * @param {NamedObject} obj
+ * @return {string|null}
  */
-export function getSuperClassName(thing) {
-    let superClass = Object.getPrototypeOf(Object.getPrototypeOf(thing))
+export function getSuperClassName(obj) {
+    if (!isNamedObject(obj)) return null
+    let superClass = Object.getPrototypeOf(Object.getPrototypeOf(obj))
     let name = superClass.constructor.name
     // If the object inherits directly from "Object",
     // it has no super-class
