@@ -80,19 +80,14 @@ export async function propertyExistsInClass(propertyDef, className, db) {
 
 /**
  * @param {*} thing
- * @param {lf.Database} db
- * @return {Promise<TypeLabel|null>}
+ * @return {TypeLabel}
  */
-export async function tryGetTypeLabelFor(thing, db) {
+export function typeLabelFor(thing) {
     let typeName = getThingTypeName(thing)
     if (predefinedTypeNames.includes(typeName))
         return typeName
-    else {
-        let classId = await tryGetClassIdByName(typeName, db)
-        // If the referenced class does not exist
-        if (classId === null) return null;
-        return "Ref " + classId;
-    }
+    else
+        return "Ref " + typeName;
 }
 
 /**
