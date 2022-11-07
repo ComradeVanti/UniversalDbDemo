@@ -1,4 +1,4 @@
-import {classTableName, propertyTableName} from "./constants.mjs";
+import {classTableName, propertyTableName, UnknownType} from "./constants.mjs";
 
 
 /**
@@ -22,7 +22,7 @@ function getPropertyTable(db) {
  * @return {string}
  */
 export function getThingTypeName(thing) {
-    if (thing === null || thing === undefined) return "Unknown"
+    if (thing === null || thing === undefined) return UnknownType
     return thing.constructor.name
 }
 
@@ -93,7 +93,7 @@ export async function propertyExistsInClass(propertyName, className, db) {
  */
 export async function propertyIsUnknownInClass(propertyName, className, db) {
     let property = await tryGetClassProperty(propertyName, className, db)
-    return property !== null && property.typeName === "Unknown"
+    return property !== null && property.typeName === UnknownType
 }
 
 /**
