@@ -1,8 +1,7 @@
 import {classTableName, propertyTableName} from "./constants.mjs";
 
 const predefinedTypeNames = [
-    "Null", "Undefined", "Number",
-    "String", "Boolean", "Object"
+    "Unknown", "Number", "String", "Boolean", "Object"
 ]
 
 /**
