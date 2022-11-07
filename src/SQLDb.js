@@ -18,6 +18,20 @@ const ValueTableName = "Value"
  * @property {string} type
  */
 
+/**
+ * @typedef {Object} ObjectEntry
+ * @property {Id} id
+ * @property {Id} classId
+ */
+
+/**
+ * @typedef {Object} ValueEntry
+ * @property {Id} id
+ * @property {Id} propId
+ * @property {Id} objectId
+ * @property {string} value
+ */
+
 export default class SQLDb {
 
     /**
@@ -114,6 +128,20 @@ export default class SQLDb {
     }
 
     /**
+     * @return {lf.schema.Table}
+     */
+    #getObjectTable() {
+        return this.#getTable(ObjectTableName)
+    }
+
+    /**
+     * @return {lf.schema.Table}
+     */
+    #getValueTable() {
+        return this.#getTable(ValueTableName)
+    }
+
+    /**
      * @param {string} name
      * @return {Promise<ClassEntry|null>}
      */
@@ -190,17 +218,13 @@ export default class SQLDb {
      * @return {Promise}
      */
     async tryUpdateProperty(id, name, classId, type) {
-        try {
-            let table = this.#getPropertyTable()
-            await this.#db.update(table)
-                .where(table.id.eq(id))
-                .set(table.name, name)
-                .set(table.classId, classId)
-                .set(table.type, type)
-                .exec()
-        } catch (e) {
-            return null
-        }
+        let table = this.#getPropertyTable()
+        await this.#db.update(table)
+            .where(table.id.eq(id))
+            .set(table.name, name)
+            .set(table.classId, classId)
+            .set(table.type, type)
+            .exec()
     }
 
     /**
@@ -226,16 +250,70 @@ export default class SQLDb {
      * @return {Promise}
      */
     async tryUpdateClass(id, name, superId) {
+        let table = this.#getClassTable()
+        await this.#db.update(table)
+            .where(table.id.eq(id))
+            .set(table.name, name)
+            .set(table.superId, superId)
+            .exec()
+    }
+
+    /**
+     * @param {Id} classId
+     * @return {Promise<Id|null>}
+     */
+    async tryInsertObject(classId) {
         try {
-            let table = this.#getClassTable()
-            await this.#db.update(table)
-                .where(table.id.eq(id))
-                .set(table.name, name)
-                .set(table.superId, superId)
-                .exec()
+            let table = this.#getObjectTable()
+            let row = await table.createRow({classId});
+            let results = await this.#db.insert().into(table).values([row]).exec();
+            return results[0].id
         } catch (e) {
             return null
         }
+    }
+
+    /**
+     * @param {Id} id
+     * @return {Promise<ObjectEntry|null>}
+     */
+    async tryGetObjectById(id) {
+        let table = this.#getObjectTable()
+        let rows = await this.#db.select()
+            .from(table)
+            .where(table.id.eq(id))
+            .exec()
+        return rows[0] ?? null
+    }
+
+    /**
+     * @param {Id} propId
+     * @param {Id} objectId
+     * @param {string} value
+     * @return {Promise<Id|null>}
+     */
+    async tryInsertValue(propId, objectId, value) {
+        try {
+            let table = this.#getValueTable()
+            let row = await table.createRow({propId, objectId, value});
+            let results = await this.#db.insert().into(table).values([row]).exec();
+            return results[0].id
+        } catch (e) {
+            return null
+        }
+    }
+
+    /**
+     * @param {Id} id
+     * @return {Promise<ValueEntry|null>}
+     */
+    async tryGetValueById(id) {
+        let table = this.#getValueTable()
+        let rows = await this.#db.select()
+            .from(table)
+            .where(table.id.eq(id))
+            .exec()
+        return rows[0] ?? null
     }
 
 }
