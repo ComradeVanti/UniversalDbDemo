@@ -42,7 +42,7 @@ export default class UniversalDb {
             })
             .addUnique('uq_name', ['name'])
 
-        schemaBuilder.createTable("Property")
+        schemaBuilder.createTable(PropertyTableName)
             .addColumn("id", lf.Type.INTEGER)
             .addColumn("name", lf.Type.STRING)
             .addColumn("classId", lf.Type.INTEGER)
