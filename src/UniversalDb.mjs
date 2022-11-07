@@ -10,6 +10,14 @@ const PropertyTableName = "Property"
 const ObjectTableName = "Object"
 const ValueTableName = "Value"
 
+/**
+ * @typedef {Object} PropertyEntry
+ * @property {Id} id
+ * @property {string} name
+ * @property {Id} classId
+ * @property {string} value
+ */
+
 export default class UniversalDb {
 
     /**
@@ -106,6 +114,20 @@ export default class UniversalDb {
     }
 
     /**
+     * @param {Id} classId
+     * @param {string} name
+     * @return {Promise<PropertyEntry|null>}
+     */
+    async tryGetPropertyEntryByName(classId, name) {
+        let propertyTable = this.#getPropertyTable()
+        let rows = await this.db.select()
+            .from(propertyTable)
+            .where(propertyTable.classId.eq(classId) && propertyTable.name.eq(name))
+            .exec()
+        return rows[0] ?? null
+    }
+
+    /**
      * @param {string} name
      * @return {Promise<Id|null>}
      */
@@ -129,6 +151,20 @@ export default class UniversalDb {
             .where(propertyTable.name.eq(name))
             .exec()
         return rows.map(row => row.id)
+    }
+
+    /**
+     * @param {string} propertyName
+     * @param {string} className
+     * @return {Promise<Id|null>}
+     */
+    async tryGetPropertyId(propertyName, className) {
+        let propertyTable = this.#getPropertyTable()
+        let rows = await this.db.select(propertyTable.id)
+            .from(propertyTable)
+            .where(propertyTable.name.eq(propertyName))
+            .exec()
+        return rows.map(row => row.id)[0] ?? null
     }
 
     /**
