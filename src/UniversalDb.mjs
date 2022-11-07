@@ -81,17 +81,25 @@ export default class UniversalDb {
     }
 
     /**
+     * @param {string} name
+     * @return {lf.schema.Table}
+     */
+    #getTable(name) {
+        return this.db.getSchema().table(name)
+    }
+
+    /**
      * @return {lf.schema.Table}
      */
     #getClassTable() {
-        return this.db.getSchema().table(ClassTableName)
+        return this.#getTable(ClassTableName)
     }
 
     /**
      * @return {lf.schema.Table}
      */
     #getPropertyTable() {
-        return this.db.getSchema().table(PropertyTableName)
+        return this.#getTable(PropertyTableName)
     }
 
     /**
