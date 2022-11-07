@@ -25,9 +25,9 @@ export default class UniversalDb {
 
 
     /**
-     * @return {UniversalDb}
+     * @return {Promise<UniversalDb>}
      */
-    static makeEmpty() {
+    static async makeEmpty() {
 
         let schemaBuilder = lf.schema.create("main", 1);
         schemaBuilder.createTable(ClassTableName)
@@ -77,7 +77,8 @@ export default class UniversalDb {
                 ref: "Object.id"
             })
 
-        return new UniversalDb(schemaBuilder.connect());
+        let db = await schemaBuilder.connect()
+        return new UniversalDb(db);
     }
 
     /**

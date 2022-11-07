@@ -40,7 +40,7 @@ class Person {
 
 window.onload = async () => {
     let dbModule = await import("./UniversalDb.mjs")
-    let db = dbModule.default.makeEmpty()
+    let db = await dbModule.default.makeEmpty()
 
     let greenCar = new Car("Green")
     let redCar = new Car("Red")
