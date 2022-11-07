@@ -1,8 +1,5 @@
 import {classTableName, propertyTableName} from "./constants.mjs";
 
-const predefinedTypeNames = [
-    "Unknown", "Number", "String", "Boolean", "Object"
-]
 
 /**
  * @param {lf.Database} db
@@ -57,36 +54,46 @@ export function getProperties(thing) {
 }
 
 /**
- * @param {PropertyDefinition} propertyDef
+ * @param {string} propertyName
+ * @param {string} className
+ * @param {lf.Database} db
+ * @return {Promise<PropertyDefinition|null>}
+ */
+async function tryGetClassProperty(propertyName, className, db) {
+    let classId = await tryGetClassIdByName(className, db);
+    // If the class does not exist, we can't get the property
+    if (classId === null) return null;
+    let propertyTable = getPropertyTable(db)
+    let row = (await db.select()
+        .from(propertyTable)
+        .where(propertyTable.classId.eq(classId) &&
+                   propertyTable.name.eq(propertyName))
+        .exec())[0]
+    // The property was not found
+    if (row === null || row === undefined) return null
+    return {name: row.name, typeName: row.type}
+}
+
+/**
+ * @param {string} propertyName
  * @param {string} className
  * @param {lf.Database} db
  * @return {Promise<boolean>}
  */
-export async function propertyExistsInClass(propertyDef, className, db) {
-    let classId = await tryGetClassIdByName(className, db);
-    // If the class does not exist, it does not contain the property
-    if (classId === null) return false;
-    let propertyTable = getPropertyTable(db)
-    let rows = await db.select()
-        .from(propertyTable)
-        .where(propertyTable.classId.eq(classId) &&
-                   propertyTable.name.eq(propertyDef.name) &&
-                   propertyTable.type.eq(propertyDef.typeName))
-        .exec()
-    // There should only ever be one of a property in a class
-    return rows.length === 1
+export async function propertyExistsInClass(propertyName, className, db) {
+    let property = await tryGetClassProperty(propertyName, className, db)
+    return property !== null
 }
 
 /**
- * @param {*} thing
- * @return {TypeLabel}
+ * @param {string} propertyName
+ * @param {string} className
+ * @param {lf.Database} db
+ * @return {Promise<boolean>}
  */
-export function typeLabelFor(thing) {
-    let typeName = getThingTypeName(thing)
-    if (predefinedTypeNames.includes(typeName))
-        return typeName
-    else
-        return "Ref " + typeName;
+export async function propertyIsUnknownInClass(propertyName, className, db) {
+    let property = await tryGetClassProperty(propertyName, className, db)
+    return property !== null && property.typeName === "Unknown"
 }
 
 /**
@@ -97,23 +104,6 @@ export function typeLabelFor(thing) {
  */
 function tryGetObject(classId, objectId, db) {
     throw  "Not implemented"
-}
-
-/**
- * @param {string} value
- * @param {TypeLabel} typeLabel
- * @param {lf.Database} db
- * @return {Promise<*|null>}
- */
-export async function tryParseAs(value, typeLabel, db) {
-    // Reference-properties start with "Ref"
-    if (typeLabel.startsWith("Ref")) {
-        // The class-id is the number after the "Ref "
-        let classId = parseInt(typeLabel.substring(typeLabel.indexOf(" ") + 1))
-        let objectId = parseInt(value)
-        return await tryGetObject(classId, objectId, db)
-    } else
-        return JSON.parse(value)
 }
 
 /**
