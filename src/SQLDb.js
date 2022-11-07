@@ -174,7 +174,7 @@ export default class SQLDb {
     async tryInsertProperty(name, classId, type) {
         try {
             let table = this.#getPropertyTable()
-            let row = await table.createRow({name, classId, value: type});
+            let row = await table.createRow({name, classId, type});
             let results = await this.#db.insert().into(table).values([row]).exec();
             return results[0].id
         } catch (e) {
@@ -196,13 +196,12 @@ export default class SQLDb {
                 .where(table.id.eq(id))
                 .set(table.name, name)
                 .set(table.classId, classId)
-                .set(table.value, type)
+                .set(table.type, type)
                 .exec()
         } catch (e) {
             return null
         }
     }
-
 
     /**
      * @param {string} name
