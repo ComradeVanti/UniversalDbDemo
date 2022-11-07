@@ -53,7 +53,10 @@ export function classDefinitionOf(obj) {
     if (!isNamedObject(obj)) return null
     let className = getThingTypeName(obj)
     let propertyDefinitions =
-        getProperties(obj)
-            .map(prop => prop.definition)
+        Object.entries(obj)
+            .map(([key, value]) => ({
+                name: key,
+                typeName: getThingTypeName(value)
+            }))
     return {name: className, properties: propertyDefinitions}
 }
