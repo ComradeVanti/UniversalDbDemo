@@ -1,10 +1,3 @@
-import {
-    getProperties,
-    getSuperClassName,
-    getThingTypeName,
-    UnknownType
-} from "./typeUtils.mjs";
-
 const ClassTableName = "Class"
 const PropertyTableName = "Property"
 const ObjectTableName = "Object"
