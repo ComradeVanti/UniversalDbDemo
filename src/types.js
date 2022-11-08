@@ -3,6 +3,10 @@
  */
 
 /**
+ * @typedef {void} Nothing
+ */
+
+/**
  * @typedef {number} Id
  */
 

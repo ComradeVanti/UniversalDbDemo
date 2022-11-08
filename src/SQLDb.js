@@ -2,6 +2,7 @@ const ClassTableName = "Class"
 const PropertyTableName = "Property"
 const ObjectTableName = "Object"
 const ValueTableName = "Value"
+const LFConstraintError = 200
 
 /**
  * @typedef {Object} ClassEntry
@@ -31,6 +32,37 @@ const ValueTableName = "Value"
  * @property {Id} objectId
  * @property {string} value
  */
+
+/**
+ * @readonly
+ * @enum {number}
+ */
+export const SQLErrorCode = {
+    Mystery: 0,
+    ItemNotFound: 1,
+    DuplicateClassName: 2
+}
+
+/**
+ * @param {SQLErrorCode} code
+ * @constructor
+ */
+export function SQLError(code) {
+    /**
+     * @type {SQLErrorCode}
+     */
+    this.code = code
+}
+
+export const MysteryError =
+    new SQLError(SQLErrorCode.Mystery)
+
+export const ItemNotFoundError =
+    new SQLError(SQLErrorCode.ItemNotFound)
+
+export const DuplicateClassNameError =
+    new SQLError(SQLErrorCode.DuplicateClassName)
+
 
 export default class SQLDb {
 
@@ -105,9 +137,9 @@ export default class SQLDb {
         return new SQLDb(db);
     }
 
-/**
- * Get tables
- */
+    /**
+     * Get tables
+     */
     /**
      * @param {string} name
      * @return {lf.schema.Table}
@@ -144,23 +176,26 @@ export default class SQLDb {
         return this.#getTable(ValueTableName)
     }
 
-
-/**
- * Class methods
- */
+    /**
+     * Class methods
+     */
     /**
      * @param {string} name
      * @param {Id|null} superId
-     * @return {Promise<Id, null>}
+     * @return {Promise<Id, SQLError>}
      */
     async tryInsertClass(name, superId) {
+        let table = this.#getClassTable()
+        let row = table.createRow({name, superId});
+        let query = this.#db.insert().into(table).values([row])
         try {
-            let table = this.#getClassTable()
-            let row = table.createRow({name, superId});
-            let results = await this.#db.insert().into(table).values([row]).exec();
+            let results = await query.exec();
             return results[0].id
         } catch (e) {
-            return null
+            if (e.code === LFConstraintError)
+                return DuplicateClassNameError
+            else
+                return MysteryError
         }
     }
 
@@ -168,60 +203,69 @@ export default class SQLDb {
      * @param {Id} id
      * @param {string} name
      * @param {Id} superId
-     * @return {Promise}
+     * @return {Promise<Nothing|SQLError>}
      */
     async tryUpdateClass(id, name, superId) {
         let table = this.#getClassTable()
-        await this.#db.update(table)
+        let query = this.#db.update(table)
             .where(table.id.eq(id))
             .set(table.name, name)
             .set(table.superId, superId)
-            .exec()
+        try {
+            let rows = await query.exec()
+            if (rows.length === 0) return ItemNotFoundError
+        } catch (e) {
+            if (e.code === LFConstraintError)
+                return DuplicateClassNameError
+            else
+                return MysteryError
+        }
     }
 
     /**
      * @param {string} name
-     * @return {Promise<ClassEntry|null>}
+     * @return {Promise<ClassEntry|SQLError>}
      */
     async tryGetClassByName(name) {
         let table = this.#getClassTable()
-        let rows = await this.#db.select()
+        let query = this.#db.select()
             .from(table)
             .where(table.name.eq(name))
-            .exec()
-        return rows[0] ?? null
+        let rows = await query.exec()
+        return rows[0] ?? ItemNotFoundError
     }
 
     /**
      * @param {Id} id
-     * @return {Promise<ClassEntry|null>}
+     * @return {Promise<ClassEntry|SQLError>}
      */
     async tryGetClassById(id) {
         let table = this.#getClassTable()
-        let rows = await this.#db.select()
+        let query = this.#db.select()
             .from(table)
             .where(table.id.eq(id))
-            .exec()
-        return rows[0] ?? null
+        let rows = await query.exec()
+        return rows[0] ?? ItemNotFoundError
     }
 
-/**
- * Property methods
- */
+    /**
+     * Property methods
+     */
     /**
      * @param {string} name
      * @param {Id} classId
      * @param {string} type
-     * @return {Promise<Id|null>}
+     * @return {Promise<Id|SQLError>}
      */
     async tryInsertProperty(name, classId, type) {
+        let table = this.#getPropertyTable()
+        let row = await table.createRow({name, classId, type});
+        let query = this.#db.insert().into(table).values([row])
         try {
-            let table = this.#getPropertyTable()
-            let row = await table.createRow({name, classId, type});
-            let results = await this.#db.insert().into(table).values([row]).exec();
+            let results = await query.exec();
             return results[0].id
         } catch (e) {
-            return null
+            return MysteryError
         }
     }
 
@@ -230,30 +274,37 @@ export default class SQLDb {
      * @param {string} name
      * @param {Id} classId
      * @param {string} type
-     * @return {Promise}
+     * @return {Promise<Nothing|SQLError>}
      */
     async tryUpdateProperty(id, name, classId, type) {
         let table = this.#getPropertyTable()
-        await this.#db.update(table)
+        let query = this.#db.update(table)
             .where(table.id.eq(id))
             .set(table.name, name)
             .set(table.classId, classId)
             .set(table.type, type)
-            .exec()
+        try {
+            await query.exec()
+        } catch (e) {
+            if (e.code === LFConstraintError)
+                return ItemNotFoundError
+            else
+                return MysteryError
+        }
     }
 
     /**
      * @param {Id} classId
      * @param {string} name
-     * @return {Promise<PropertyEntry|null>}
+     * @return {Promise<PropertyEntry|SQLError>}
      */
     async tryGetPropertyByName(classId, name) {
         let table = this.#getPropertyTable()
-        let rows = await this.#db.select()
+        let query = this.#db.select()
             .from(table)
             .where(table.classId.eq(classId) && table.name.eq(name))
-            .exec()
-        return rows[0] ?? null
+        let rows = await query.exec()
+        return rows[0] ?? ItemNotFoundError
     }
 
     /**
@@ -268,69 +319,70 @@ export default class SQLDb {
             .exec()
     }
 
-
-/**
- * Object methods
- */
+    /**
+     * Object methods
+     */
     /**
      * @param {Id} classId
-     * @return {Promise<Id|null>}
+     * @return {Promise<Id|SQLError>}
      */
     async tryInsertObject(classId) {
         try {
             let table = this.#getObjectTable()
             let row = await table.createRow({classId});
-            let results = await this.#db.insert().into(table).values([row]).exec();
+            let query = this.#db.insert().into(table).values([row])
+            let results = await query.exec();
             return results[0].id
         } catch (e) {
-            return null
+            return MysteryError
         }
     }
 
     /**
      * @param {Id} id
-     * @return {Promise<ObjectEntry|null>}
+     * @return {Promise<ObjectEntry|SQLError>}
      */
     async tryGetObjectById(id) {
         let table = this.#getObjectTable()
-        let rows = await this.#db.select()
+        let query = this.#db.select()
             .from(table)
             .where(table.id.eq(id))
-            .exec()
-        return rows[0] ?? null
+        let rows = await query.exec()
+        return rows[0] ?? ItemNotFoundError
     }
 
-/**
- * Value methods
- */
+    /**
+     * Value methods
+     */
     /**
      * @param {Id} propId
      * @param {Id} objectId
      * @param {string} value
-     * @return {Promise<Id|null>}
+     * @return {Promise<Id|SQLError>}
      */
     async tryInsertValue(propId, objectId, value) {
+        let table = this.#getValueTable()
+        let row = await table.createRow({propId, objectId, value});
+        let query = this.#db.insert().into(table).values([row])
         try {
-            let table = this.#getValueTable()
-            let row = await table.createRow({propId, objectId, value});
-            let results = await this.#db.insert().into(table).values([row]).exec();
+            let results = await query.exec();
             return results[0].id
         } catch (e) {
-            return null
+            return MysteryError
         }
     }
 
     /**
      * @param {Id} id
-     * @return {Promise<ValueEntry|null>}
+     * @return {Promise<ValueEntry|SQLError>}
      */
     async tryGetValueById(id) {
         let table = this.#getValueTable()
-        let rows = await this.#db.select()
+        let query = this.#db.select()
             .from(table)
             .where(table.id.eq(id))
-            .exec()
-        return rows[0] ?? null
+        let rows = await query.exec()
+        return rows[0] ?? ItemNotFoundError
     }
 
 }
