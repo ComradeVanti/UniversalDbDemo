@@ -138,7 +138,7 @@ export default class UniversalDb {
                     break;
             }
         } else {
-            console.log(`Class with id ${result} created`);
+            console.log(`Class with id ${result} created (${getThingTypeName(thing)})`);
         }
     }
 
@@ -233,7 +233,8 @@ export default class UniversalDb {
                     break;
             }
         } else {
-            console.log(`Object with id ${result} created (${className})`);
+            console.log(`Object with id ${result} created`);
+            return result;
         }
     }
 
@@ -250,11 +251,16 @@ export default class UniversalDb {
         for (let elem of propertyProps) {
             let propertyEntry = await this.#sql.tryGetPropertyByName(classEntry.id, elem.definition.name);
 
-            // TODO: set value
-            //      - if value is reference -> create if needed => save id of created object
-            //      - save value as JSON.stringify(value)
+            let result;
+            if (typeof elem.value === 'object' && elem.value !== null) {
+                await this.handleStoreValueIfValueIsObject(elem.value);
+                continue;
+            } if (elem.value === null) {
+                result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, "");
+            } else {
+               result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, JSON.stringify(elem.value));
+            }
 
-            let result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, JSON.stringify(elem.value));
             if (result instanceof SQLError) {
                 switch (result) {
                     case MysteryError :
@@ -268,9 +274,22 @@ export default class UniversalDb {
                         break;
                 }
             } else {
-                console.log(`Value with id ${result} created`);
+                console.log(`Value with id ${result} created (${elem.value})`);
             }
         }
+    }
+
+    /**
+     * @param {NamedObject} thing
+     * @return {Promise}
+     */
+    async handleStoreValueIfValueIsObject(thing) {
+        if (!(await this.classWithNameExists(getThingTypeName(thing)))) {
+            await this.#insertClassFor(thing);
+        }
+        await this.#insertProperties(thing);
+        let objectId = await this.#insertObject(thing);
+        await this.#insertValue(objectId, thing);
     }
 
     /**
@@ -282,7 +301,8 @@ export default class UniversalDb {
             await this.#insertClassFor(thing);
         }
         await this.#insertProperties(thing);
-        await this.#insertObject(thing);
+        let objectId = await this.#insertObject(thing);
+        await this.#insertValue(objectId, thing);
     }
 
 }
