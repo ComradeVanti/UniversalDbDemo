@@ -7,7 +7,7 @@ const ValueTableName = "Value"
  * @typedef {Object} ClassEntry
  * @property {Id} id
  * @property {string} name
- * @property {Id} superClassId
+ * @property {Id|null} superClassId
  */
 
 /**
@@ -150,7 +150,7 @@ export default class SQLDb {
  */
     /**
      * @param {string} name
-     * @param {Id} superId
+     * @param {Id|null} superId
      * @return {Promise<Id, null>}
      */
     async tryInsertClass(name, superId) {
