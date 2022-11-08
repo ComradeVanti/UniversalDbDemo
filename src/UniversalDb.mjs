@@ -253,8 +253,8 @@ export default class UniversalDb {
 
             let result;
             if (typeof elem.value === 'object' && elem.value !== null) {
-                await this.handleStoreValueIfValueIsObject(elem.value);
-                continue;
+                let createdObjectId = await this.handleStoreValueIfValueIsObject(elem.value);
+                result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, JSON.stringify(createdObjectId));
             } if (elem.value === null) {
                 result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, "");
             } else {
@@ -290,6 +290,8 @@ export default class UniversalDb {
         await this.#insertProperties(thing);
         let objectId = await this.#insertObject(thing);
         await this.#insertValue(objectId, thing);
+
+        return objectId;
     }
 
     /**
