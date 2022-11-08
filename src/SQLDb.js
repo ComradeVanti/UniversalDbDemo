@@ -7,7 +7,7 @@ const ValueTableName = "Value"
  * @typedef {Object} ClassEntry
  * @property {Id} id
  * @property {string} name
- * @property {Id|null} superClassId
+ * @property {Id|null} superId
  */
 
 /**
