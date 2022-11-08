@@ -4,7 +4,7 @@ import {
     getThingTypeName,
     UnknownType
 } from "./typeUtils.mjs";
-import SQLDb from "./SQLDb.js";
+import SQLDb, {DuplicateClassNameError, ItemNotFoundError, MysteryError, SQLError} from "./SQLDb.js";
 
 export default class UniversalDb {
 
@@ -67,7 +67,9 @@ export default class UniversalDb {
     async tryGetClassProperty(propertyName, className) {
         let entry = await this.#sql.tryGetClassByName(className);
         // If the class does not exist, we can't get the property
-        if (entry === null) return null;
+        if (entry instanceof SQLError) {
+            return null;
+        }
         let properties = await this.getPropertyDefinitionsByClassId(entry.id)
         return properties.find(it => it.name === propertyName) ?? null
     }
@@ -106,8 +108,8 @@ export default class UniversalDb {
      * @return {Promise<boolean>}
      */
     async classWithNameExists(name) {
-        let entry = await this.#sql.tryGetClassByName(name)
-        return entry !== null
+        let entry = await this.#sql.tryGetClassByName(name);
+        return !(entry instanceof SQLError);
     }
 
     /**
@@ -123,8 +125,18 @@ export default class UniversalDb {
         }
 
         let result = await this.#sql.tryInsertClass(getThingTypeName(thing), superClassID);
-        if (result === null) {
-            throw("Something failed");
+        if (result instanceof SQLError) {
+            switch (result) {
+                case MysteryError :
+                    throw(`MysteryError: ${result} in method #insertClassFor`);
+                    break;
+                case DuplicateClassNameError :
+                    throw(`DuplicateClassNameError: ${result} in method #insertClassFor`);
+                    break;
+                case ItemNotFoundError :
+                    throw(`ItemNotFoundError: ${result} in method #insertClassFor`);
+                    break;
+            }
         } else {
             console.log(`Class with id ${result} created`);
         }
@@ -148,8 +160,18 @@ export default class UniversalDb {
                     // only store property, with type is undefined, if it doesn't exist already
                     let result =
                         await this.#sql.tryInsertProperty(elem.definition.name, classId, elem.definition.typeName);
-                    if (result === null) {
-                        throw("Something failed");
+                    if (result instanceof SQLError) {
+                        switch (result) {
+                            case MysteryError :
+                                throw(`Error: ${result} in method #insertClassFor`);
+                                break;
+                            case DuplicateClassNameError :
+                                throw(`Error: ${result} in method #insertClassFor`);
+                                break;
+                            case ItemNotFoundError :
+                                throw(`Error: ${result} in method #insertClassFor`);
+                                break;
+                        }
                     } else {
                         console.log(`Property with id ${result} created`);
                     }
@@ -169,8 +191,18 @@ export default class UniversalDb {
                     // store property (property type is known and doesn't exist yet)
                     let result =
                         await this.#sql.tryInsertProperty(elem.definition.name, classId, elem.definition.typeName);
-                    if (result === null) {
-                        throw("Something failed");
+                    if (result instanceof SQLError) {
+                        switch (result) {
+                            case MysteryError :
+                                throw(`Error: ${result} in method #insertClassFor`);
+                                break;
+                            case DuplicateClassNameError :
+                                throw(`Error: ${result} in method #insertClassFor`);
+                                break;
+                            case ItemNotFoundError :
+                                throw(`Error: ${result} in method #insertClassFor`);
+                                break;
+                        }
                     } else {
                         console.log(`Property with id ${result} created`);
                     }
@@ -188,11 +220,20 @@ export default class UniversalDb {
         let classEntry = await this.#sql.tryGetClassByName(className);
 
         let result = await this.#sql.tryInsertObject(classEntry.id);
-        if (result === null) {
-            throw("Something failed");
+        if (result instanceof SQLError) {
+            switch (result) {
+                case MysteryError :
+                    throw(`Error: ${result} in method #insertClassFor`);
+                    break;
+                case DuplicateClassNameError :
+                    throw(`Error: ${result} in method #insertClassFor`);
+                    break;
+                case ItemNotFoundError :
+                    throw(`Error: ${result} in method #insertClassFor`);
+                    break;
+            }
         } else {
-            console.log(`Object with id ${result} created`);
-            await this.#insertValue(result, thing);
+            console.log(`Object with id ${result} created (${className})`);
         }
     }
 
@@ -214,11 +255,20 @@ export default class UniversalDb {
             //      - save value as JSON.stringify(value)
 
             let result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, JSON.stringify(elem.value));
-            if (result === null) {
-                throw("Something failed");
+            if (result instanceof SQLError) {
+                switch (result) {
+                    case MysteryError :
+                        throw(`Error: ${result} in method #insertClassFor`);
+                        break;
+                    case DuplicateClassNameError :
+                        throw(`Error: ${result} in method #insertClassFor`);
+                        break;
+                    case ItemNotFoundError :
+                        throw(`Error: ${result} in method #insertClassFor`);
+                        break;
+                }
             } else {
-                console.log(`Value with id ${result} created 
-                    (propId: ${propertyEntry.id}, objectId: ${objectId}, value: ${elem.value})`);
+                console.log(`Value with id ${result} created`);
             }
         }
     }
@@ -231,7 +281,6 @@ export default class UniversalDb {
         if (!(await this.classWithNameExists(getThingTypeName(thing)))) {
             await this.#insertClassFor(thing);
         }
-
         await this.#insertProperties(thing);
         await this.#insertObject(thing);
     }
