@@ -182,7 +182,7 @@ export default class SQLDb {
     /**
      * @param {string} name
      * @param {Id|null} superId
-     * @return {Promise<Id, SQLError>}
+     * @return {Promise<Id|SQLError>}
      */
     async tryInsertClass(name, superId) {
         let table = this.#getClassTable()
