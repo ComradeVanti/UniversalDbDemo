@@ -313,10 +313,10 @@ export default class SQLDb {
      */
     tryGetPropertiesByClassId(classId) {
         let table = this.#getPropertyTable()
-        return this.#db.select()
+        let query = this.#db.select()
             .from(table)
             .where(table.classId.eq(classId))
-            .exec()
+        return query.exec()
     }
 
     /**
