@@ -113,7 +113,7 @@ export default class UniversalDb {
     }
 
     /**
-     * @param {NamedObject} thing
+     * @param {TypedObject} thing
      * @return {Promise}
      */
     async #insertClassFor(thing) {
@@ -143,7 +143,7 @@ export default class UniversalDb {
     }
 
     /**
-     * @param {NamedObject} thing
+     * @param {TypedObject} thing
      * @return {Promise}
      */
     async #insertProperties(thing) {
@@ -212,7 +212,7 @@ export default class UniversalDb {
     }
 
     /**
-     * @param {NamedObject} thing
+     * @param {TypedObject} thing
      * @return {Promise}
      */
     async #insertObject(thing) {
@@ -240,7 +240,7 @@ export default class UniversalDb {
 
     /**
      * @param {Id} objectId
-     * @param {NamedObject} thing
+     * @param {TypedObject} thing
      * @return {Promise}
      */
     async #insertValue(objectId, thing) {
@@ -280,7 +280,7 @@ export default class UniversalDb {
     }
 
     /**
-     * @param {NamedObject} thing
+     * @param {TypedObject} thing
      * @return {Promise}
      */
     async handleStoreValueIfValueIsObject(thing) {
@@ -295,7 +295,7 @@ export default class UniversalDb {
     }
 
     /**
-     * @param {NamedObject} thing
+     * @param {TypedObject} thing
      * @return {Promise}
      */
     async store(thing) {

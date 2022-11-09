@@ -1,5 +1,5 @@
 /**
- * @typedef {Object} NamedObject
+ * @typedef {Object} TypedObject
  */
 
 /**
@@ -11,9 +11,18 @@
  */
 
 /**
+ * @typedef {function} Type
+ */
+
+/**
+ * @typedef {string} TypeName
+ */
+
+/**
  * @typedef {Object} PropertyDefinition
  * @property {string} name
- * @property {string} typeName
+ * @property {TypeName} definedOn
+ * @property {TypeName} typeName
  */
 
 /**
