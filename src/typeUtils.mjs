@@ -93,6 +93,29 @@ export function ownPropertiesOf(obj) {
 }
 
 /**
+ * @param {TypedObject} obj
+ * @return {TypedObject|null}
+ */
+export function trimToSuperType(obj) {
+    let type = typeOf(obj)
+    let superType = superTypeOf(type)
+
+    if (superType !== null) {
+        let superPropertyNames = allPropertyNamesOf(superType)
+        let instance = makeInstanceOf(superType)
+
+        Object.entries(obj)
+            .forEach(([key, value]) => {
+                if (superPropertyNames.includes(key))
+                    instance[key] = value
+            })
+
+        return instance
+    }else
+        return null
+}
+
+/**
  * @param {*} thing
  * @return {string}
  */
