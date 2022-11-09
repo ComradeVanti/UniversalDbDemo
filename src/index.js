@@ -64,8 +64,19 @@ class Person {
 }
 
 window.onload = async () => {
+    await showcaseDb()
+}
+
+/**
+ * @return {Promise<UniversalDb>}
+ */
+async function makeEmptyDb() {
     let dbModule = await import("./UniversalDb.mjs")
-    let db = await dbModule.default.makeEmpty()
+    return dbModule.default.makeEmpty()
+}
+
+async function showcaseDb() {
+    let db = await makeEmptyDb();
 
     let greenCar = new Car("Green")
     let redCar = new Car("Red")
@@ -73,9 +84,9 @@ window.onload = async () => {
 
     let michelle = new Person("Michelle", greenCar, null)
     let ramon = new Person("Ramon", redCar, greenCar)
-    let michael = new Person("Michi", null, yellowCar)
+    let michael = new Person("Michael", null, yellowCar)
 
-    await db.store(michelle)
-    await db.store(ramon)
-    await db.store(michael)
+    let michelleId = await db.store(michelle)
+    let ramonId = await db.store(ramon)
+    let michaelId = await db.store(michael)
 }
