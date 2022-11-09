@@ -83,6 +83,16 @@ export function propertiesOf(obj) {
 }
 
 /**
+ * @param {TypedObject} obj
+ * @return {Property[]}
+ */
+export function ownPropertiesOf(obj) {
+    let all = propertiesOf(obj)
+    let typeName = typeOf(obj).name
+    return all.filter(prop => prop.definition.definedOn === typeName)
+}
+
+/**
  * @param {*} thing
  * @return {string}
  */
