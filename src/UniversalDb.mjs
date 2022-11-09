@@ -1,7 +1,8 @@
 import {
     getProperties,
     getSuperClassName,
-    getThingTypeName,
+    getThingTypeName, ownPropertiesOf,
+    propertiesOf, trimToSuperType,
     UnknownType
 } from "./typeUtils.mjs";
 import SQLDb, {DuplicateClassNameError, ItemNotFoundError, MysteryError, SQLError} from "./SQLDb.js";
@@ -98,11 +99,18 @@ export default class UniversalDb {
      * @return {Promise}
      */
     async #insertClassFor(thing) {
+        console.log(thing)
         let superClassName = getSuperClassName(thing);
 
         let superClassID = null;
         if (superClassName !== null) {
             superClassID = await this.#sql.tryGetClassByName(superClassName);
+
+            if (superClassID instanceof SQLError) {
+                // add superclass
+                let trimmedSuperClass = trimToSuperType(thing);
+                superClassID = await this.#insertClassFor(trimmedSuperClass);
+            }
         }
 
         let result = await this.#sql.tryInsertClass(getThingTypeName(thing), superClassID);
@@ -117,10 +125,13 @@ export default class UniversalDb {
                 case ItemNotFoundError :
                     throw(`ItemNotFoundError: ${result} in method #insertClassFor`);
                     break;
+                    break;
             }
         } else {
             console.log(`Class with id ${result} created (${getThingTypeName(thing)})`);
         }
+
+        await this.#insertProperties(thing);
     }
 
     /**
@@ -128,7 +139,7 @@ export default class UniversalDb {
      * @return {Promise}
      */
     async #insertProperties(thing) {
-        let propertyProps = getProperties(thing);
+        let propertyProps = ownPropertiesOf(thing);
 
         for (let elem of propertyProps) {
             let className = getThingTypeName(thing);
@@ -154,7 +165,7 @@ export default class UniversalDb {
                                 break;
                         }
                     } else {
-                        console.log(`Property with id ${result} created`);
+                        console.log(`Property with id ${result} created (${elem.definition.name})`);
                     }
                 }
             } else {
@@ -185,7 +196,7 @@ export default class UniversalDb {
                                 break;
                         }
                     } else {
-                        console.log(`Property with id ${result} created`);
+                        console.log(`Property with id ${result} created (${elem.definition.name})`);
                     }
                 }
             }
@@ -268,7 +279,6 @@ export default class UniversalDb {
         if (!(await this.classWithNameExists(getThingTypeName(thing)))) {
             await this.#insertClassFor(thing);
         }
-        await this.#insertProperties(thing);
         let objectId = await this.#insertObject(thing);
         await this.#insertValue(objectId, thing);
 
@@ -283,7 +293,6 @@ export default class UniversalDb {
         if (!(await this.classWithNameExists(getThingTypeName(thing)))) {
             await this.#insertClassFor(thing);
         }
-        await this.#insertProperties(thing);
         let objectId = await this.#insertObject(thing);
         await this.#insertValue(objectId, thing);
     }
