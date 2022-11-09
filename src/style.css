@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+
+:root {
+    --background: #b9b9b9;
+    --surface: #e7e7e7;
+
+    --distance-medium: 20px;
+    --distance-large: 50px;
+}
+
+* {
+    font-family: 'Lato', sans-serif;
+}
+
+body {
+    background-color: var(--background);
+    margin: 0;
+    height: 100vh;
+    display: flex;
+}
+
+.surface, .card {
+    background-color: var(--surface);
+}
+
+.drop-shadow, .card {
+    box-shadow: 0 0 10px 2px rgb(84, 84, 84);
+}
+
+.card {
+    border-radius: 10px;
+    overflow: clip;
+    padding: var(--distance-medium);
+}
+
+.fill-parent {
+    flex-grow: 1;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.margin-large-all, .margin-large-vertical, .margin-large-top {
+    margin-top: var(--distance-large);
+}
+
+.margin-large-all, .margin-large-horizontal, .margin-large-right {
+    margin-right: var(--distance-large);
+}
+
+.margin-large-all, .margin-large-vertical, .margin-large-bottom {
+    margin-bottom: var(--distance-large);
+}
+
+.margin-large-all, .margin-large-horizontal, .margin-large-left {
+    margin-left: var(--distance-large);
+}
