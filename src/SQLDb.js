@@ -90,7 +90,11 @@ export default class SQLDb {
             .addColumn("id", lf.Type.INTEGER)
             .addColumn("name", lf.Type.STRING)
             .addColumn("superId", lf.Type.INTEGER)
-            .addPrimaryKey([{name: "id", 'autoIncrement': true, order: lf.Order.DESC}])
+            .addPrimaryKey([{
+                name: "id",
+                'autoIncrement': true,
+                order: lf.Order.DESC
+            }])
             .addNullable(["superId"])
             .addForeignKey("fk_superId", {
                 local: "superId",
@@ -103,7 +107,11 @@ export default class SQLDb {
             .addColumn("name", lf.Type.STRING)
             .addColumn("classId", lf.Type.INTEGER)
             .addColumn("type", lf.Type.STRING)
-            .addPrimaryKey([{name: "id", 'autoIncrement': true, order: lf.Order.DESC}])
+            .addPrimaryKey([{
+                name: "id",
+                'autoIncrement': true,
+                order: lf.Order.DESC
+            }])
             .addForeignKey("fk_classId", {
                 local: "classId",
                 ref: "Class.id"
@@ -112,7 +120,11 @@ export default class SQLDb {
         schemaBuilder.createTable(ObjectTableName)
             .addColumn("id", lf.Type.INTEGER)
             .addColumn("classId", lf.Type.INTEGER)
-            .addPrimaryKey([{name: "id", 'autoIncrement': true, order: lf.Order.DESC}])
+            .addPrimaryKey([{
+                name: "id",
+                'autoIncrement': true,
+                order: lf.Order.DESC
+            }])
             .addForeignKey("fk_classId", {
                 local: "classId",
                 ref: "Class.id"
@@ -123,7 +135,11 @@ export default class SQLDb {
             .addColumn("propId", lf.Type.INTEGER)
             .addColumn("objectId", lf.Type.INTEGER)
             .addColumn("value", lf.Type.STRING)
-            .addPrimaryKey([{name: "id", 'autoIncrement': true, order: lf.Order.DESC}])
+            .addPrimaryKey([{
+                name: "id",
+                'autoIncrement': true,
+                order: lf.Order.DESC
+            }])
             .addForeignKey("fk_propId", {
                 local: "propId",
                 ref: "Property.id"
@@ -302,7 +318,8 @@ export default class SQLDb {
         let table = this.#getPropertyTable()
         let query = this.#db.select()
             .from(table)
-            .where(table.classId.eq(classId) && table.name.eq(name))
+            .where(lf.op.and(table.classId.eq(classId),
+                             table.name.eq(name)))
         let rows = await query.exec()
         return rows[0] ?? ItemNotFoundError
     }
@@ -381,6 +398,21 @@ export default class SQLDb {
         let query = this.#db.select()
             .from(table)
             .where(table.id.eq(id))
+        let rows = await query.exec()
+        return rows[0] ?? ItemNotFoundError
+    }
+
+    /**
+     * @param {Id} propId
+     * @param {Id} objectId
+     * @return {Promise<ValueEntry|SQLError>}
+     */
+    async tryGetValueForProperty(propId, objectId) {
+        let table = this.#getValueTable()
+        let query = this.#db.select()
+            .from(table)
+            .where(lf.op.and(table.propId.eq(propId),
+                             table.objectId.eq(objectId)))
         let rows = await query.exec()
         return rows[0] ?? ItemNotFoundError
     }

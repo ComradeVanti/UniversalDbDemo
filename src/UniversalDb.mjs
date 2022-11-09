@@ -1,10 +1,17 @@
 import {
     getProperties,
     getSuperClassName,
-    getThingTypeName,
+    getThingTypeName, makeInstanceOf,
     UnknownType
 } from "./typeUtils.mjs";
-import SQLDb, {DuplicateClassNameError, ItemNotFoundError, MysteryError, SQLError} from "./SQLDb.js";
+import SQLDb, {
+    DuplicateClassNameError,
+    ItemNotFoundError,
+    MysteryError,
+    SQLError
+} from "./SQLDb.js";
+
+const ParsableTypes = ["String", "Number", "Boolean", "Object"]
 
 export default class UniversalDb {
 
@@ -167,7 +174,7 @@ export default class UniversalDb {
                     );
                 } else if (await this.propertyExistsInClass(elem.definition.name, className)) {
                     // skip if property exist already
-                    continue;
+
                 } else {
                     // store property (property type is known and doesn't exist yet)
                     let result =
@@ -231,15 +238,15 @@ export default class UniversalDb {
 
         for (let elem of propertyProps) {
             let propertyEntry = await this.#sql.tryGetPropertyByName(classEntry.id, elem.definition.name);
-
             let result;
             if (typeof elem.value === 'object' && elem.value !== null) {
                 let createdObjectId = await this.handleStoreValueIfValueIsObject(elem.value);
                 result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, JSON.stringify(createdObjectId));
-            } if (elem.value === null) {
-                result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, "");
+            }
+            if (elem.value === null) {
+                result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, "null");
             } else {
-               result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, JSON.stringify(elem.value));
+                result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, JSON.stringify(elem.value));
             }
 
             if (result instanceof SQLError) {
@@ -255,7 +262,7 @@ export default class UniversalDb {
                         break;
                 }
             } else {
-                console.log(`Value with id ${result} created (${elem.value})`);
+                console.log(`Value with id ${result} created (${JSON.stringify(elem.value)})`);
             }
         }
     }
@@ -277,7 +284,7 @@ export default class UniversalDb {
 
     /**
      * @param {TypedObject} thing
-     * @return {Promise}
+     * @return {Promise<Id>}
      */
     async store(thing) {
         if (!(await this.classWithNameExists(getThingTypeName(thing)))) {
@@ -286,6 +293,94 @@ export default class UniversalDb {
         await this.#insertProperties(thing);
         let objectId = await this.#insertObject(thing);
         await this.#insertValue(objectId, thing);
+        return objectId
+    }
+
+    /**
+     * @param {Id} id
+     * @return {Promise<ObjectEntry|null>}
+     */
+    async #tryGetObjectById(id) {
+        let result = await this.#sql.tryGetObjectById(id)
+        return result instanceof SQLError ? null : result;
+    }
+
+    /**
+     * @param {Id} id
+     * @return {Promise<ClassDefinition|null>}
+     */
+    async #tryGetClassDefinitionFor(id) {
+        let classEntry = await this.#sql.tryGetClassById(id)
+        if (classEntry instanceof SQLError) return null
+        let properties = await this.#sql.tryGetPropertiesByClassId(id)
+        return {name: classEntry.name, properties}
+    }
+
+    /**
+     * @param {Id} propId
+     * @param {Id} objectId
+     * @return {Promise<string>}
+     */
+    async #loadValue(propId, objectId) {
+        let result = await this.#sql.tryGetValueForProperty(propId, objectId)
+        if (result instanceof SQLError) throw "Oh no, value not found"
+        return result.value
+    }
+
+    /**
+     * @param {string} typeName
+     * @return {boolean}
+     */
+    #isParsable(typeName) {
+        return ParsableTypes.includes(typeName)
+    }
+
+    /**
+     * @param {string} unparsed
+     * @param  {string} typeName
+     * @param {Type[]} allTypes
+     * @return {Promise<*>}
+     */
+    async #parse(unparsed, typeName, allTypes) {
+        return typeName === UnknownType ? null
+            : unparsed === "null" ? null
+                : this.#isParsable(typeName) ? JSON.parse(unparsed)
+                    : await this.tryLoad(parseInt(unparsed), allTypes)
+    }
+
+    /**
+     * @param {Id} id
+     * @param {Type[]} allTypes
+     * @return {Promise<TypedObject|null>}
+     */
+    async tryLoad(id, allTypes) {
+
+        /**
+         * @param {string} name
+         * @return {Type|null}
+         */
+        function tryGetTypeOfName(name) {
+            return allTypes.find(it => it.name === name) ?? null
+        }
+
+        let objectEntry = await this.#tryGetObjectById(id)
+        if (objectEntry === null) return null
+
+        let classId = objectEntry.classId
+        let definition = await this.#tryGetClassDefinitionFor(classId)
+        if (definition === null) return null
+
+        let type = tryGetTypeOfName(definition.name)
+        if (type === null) return null
+
+        let obj = makeInstanceOf(type)
+
+        for (let property of definition.properties) {
+            let unparsed = await this.#loadValue(property.id, id)
+            obj[property.name] = this.#parse(unparsed, property.type, allTypes)
+        }
+
+        return obj
     }
 
 }

@@ -34,3 +34,9 @@
 /**
  * @typedef {string} TypeLabel
  */
+
+/**
+ * @typedef {Object} ClassDefinition
+ * @property {string} name
+ * @property {PropertyEntry[]} properties
+ */

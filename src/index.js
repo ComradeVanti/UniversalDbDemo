@@ -63,6 +63,8 @@ class Person {
 
 }
 
+let allTypes = [Vehicle, Car, Person]
+
 window.onload = async () => {
     await showcaseDb()
 }
@@ -77,6 +79,7 @@ async function makeEmptyDb() {
 
 async function showcaseDb() {
     let db = await makeEmptyDb();
+    let utils = await import("./typeUtils.mjs")
 
     let greenCar = new Car("Green")
     let redCar = new Car("Red")
@@ -89,4 +92,14 @@ async function showcaseDb() {
     let michelleId = await db.store(michelle)
     let ramonId = await db.store(ramon)
     let michaelId = await db.store(michael)
+
+    let loadedRamon = await db.tryLoad(ramonId, allTypes)
+    console.log(loadedRamon)
+    console.log(areEqual(ramon, loadedRamon))
+}
+
+function areEqual(obj1, obj2) {
+    let entries1 = Object.entries(obj1)
+    let entries2 = Object.entries(obj2)
+    return entries1 + "" === entries2 + ""
 }

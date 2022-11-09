@@ -13,7 +13,7 @@ export function typeOf(obj) {
  * @param {Type} type
  * @return {TypedObject}
  */
-function makeInstanceOf(type) {
+export function makeInstanceOf(type) {
     return new type()
 }
 
