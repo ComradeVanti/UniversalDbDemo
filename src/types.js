@@ -26,12 +26,6 @@
  */
 
 /**
- * @typedef {Object} ClassDefinition
- * @property {string} name
- * @property {PropertyDefinition[]} properties
- */
-
-/**
  * @typedef {Object} Property
  * @property {PropertyDefinition} definition
  * @property {*} value

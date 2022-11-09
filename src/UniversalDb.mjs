@@ -41,25 +41,6 @@ export default class UniversalDb {
     }
 
     /**
-     * @param {Id} classId
-     * @return {Promise<ClassDefinition|null>}
-     */
-    async tryGetClassDefinitionById(classId) {
-        let properties = await this.getPropertyDefinitionsByClassId(classId)
-        return {name, properties}
-    }
-
-    /**
-     * @param {string} name
-     * @return {Promise<ClassDefinition|null>}
-     */
-    async tryGetClassDefinitionByName(name) {
-        let entry = await this.#sql.tryGetClassByName(name)
-        if (entry === null) return null
-        return this.tryGetClassDefinitionById(entry.id)
-    }
-
-    /**
      * @param {string} propertyName
      * @param {string} className
      * @return {Promise<PropertyDefinition|null>}

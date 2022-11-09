@@ -135,19 +135,3 @@ export function getProperties(obj) {
             value: value
         }))
 }
-
-/**
- * @param {TypedObject} obj
- * @return {ClassDefinition|null}
- */
-export function classDefinitionOf(obj) {
-    if (!isNamedObject(obj)) return null
-    let className = getThingTypeName(obj)
-    let propertyDefinitions =
-        Object.entries(obj)
-            .map(([key, value]) => ({
-                name: key,
-                typeName: getThingTypeName(value)
-            }))
-    return {name: className, properties: propertyDefinitions}
-}
