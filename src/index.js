@@ -1,4 +1,18 @@
 class Vehicle {
+
+    /**
+     * @type {number}
+     */
+    wheelCount
+
+
+    /**
+     * @param {number} wheelCount
+     */
+    constructor(wheelCount) {
+        this.wheelCount = wheelCount
+    }
+
 }
 
 class Car extends Vehicle {
@@ -6,11 +20,16 @@ class Car extends Vehicle {
     /**
      * @type {string}
      */
-    modelName
+    colorName
 
-    constructor(modelName) {
-        super();
-        this.modelName = modelName
+
+    /**
+     *
+     * @param {string} colorName
+     */
+    constructor(colorName) {
+        super(4);
+        this.colorName = colorName
     }
 
 }
@@ -30,6 +49,12 @@ class Person {
      */
     privateCar
 
+
+    /**
+     * @param {string} name
+     * @param {Car} workCar
+     * @param {Car} privateCar
+     */
     constructor(name, workCar, privateCar) {
         this.name = name
         this.workCar = workCar
