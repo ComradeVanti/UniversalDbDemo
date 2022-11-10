@@ -161,13 +161,13 @@ export default class UniversalDb {
                     if (result instanceof SQLError) {
                         switch (result) {
                             case MysteryError :
-                                throw(`Error: ${result} in method #insertClassFor`);
+                                throw(`Error: ${result} in method #insertProperties`);
                                 break;
                             case DuplicateClassNameError :
-                                throw(`Error: ${result} in method #insertClassFor`);
+                                throw(`Error: ${result} in method #insertProperties`);
                                 break;
                             case ItemNotFoundError :
-                                throw(`Error: ${result} in method #insertClassFor`);
+                                throw(`Error: ${result} in method #insertProperties`);
                                 break;
                         }
                     } else {
@@ -192,13 +192,13 @@ export default class UniversalDb {
                     if (result instanceof SQLError) {
                         switch (result) {
                             case MysteryError :
-                                throw(`Error: ${result} in method #insertClassFor`);
+                                throw(`Error: ${result} in method #insertProperties`);
                                 break;
                             case DuplicateClassNameError :
-                                throw(`Error: ${result} in method #insertClassFor`);
+                                throw(`Error: ${result} in method #insertProperties`);
                                 break;
                             case ItemNotFoundError :
-                                throw(`Error: ${result} in method #insertClassFor`);
+                                throw(`Error: ${result} in method #insertProperties`);
                                 break;
                         }
                     } else {
@@ -221,13 +221,13 @@ export default class UniversalDb {
         if (result instanceof SQLError) {
             switch (result) {
                 case MysteryError :
-                    throw(`Error: ${result} in method #insertClassFor`);
+                    throw(`Error: ${result} in method #insertObjetFor`);
                     break;
                 case DuplicateClassNameError :
-                    throw(`Error: ${result} in method #insertClassFor`);
+                    throw(`Error: ${result} in method #insertObjetFor`);
                     break;
                 case ItemNotFoundError :
-                    throw(`Error: ${result} in method #insertClassFor`);
+                    throw(`Error: ${result} in method #insertObjetFor`);
                     break;
             }
         } else {
@@ -262,13 +262,13 @@ export default class UniversalDb {
             if (result instanceof SQLError) {
                 switch (result) {
                     case MysteryError :
-                        throw(`Error: ${result} in method #insertClassFor`);
+                        throw(`Error: ${result} in method #insertValue`);
                         break;
                     case DuplicateClassNameError :
-                        throw(`Error: ${result} in method #insertClassFor`);
+                        throw(`Error: ${result} in method #insertValue`);
                         break;
                     case ItemNotFoundError :
-                        throw(`Error: ${result} in method #insertClassFor`);
+                        throw(`Error: ${result} in method #insertValue`);
                         break;
                 }
             } else {
