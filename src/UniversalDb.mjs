@@ -105,7 +105,6 @@ export default class UniversalDb {
      * @return {Promise}
      */
     async #insertClassFor(thing) {
-        console.log(thing)
         let superClassName = getSuperClassName(thing);
 
         let superClassID = null;
