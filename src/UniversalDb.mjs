@@ -402,4 +402,18 @@ export default class UniversalDb {
         return obj
     }
 
+    /**
+     * @param {string} className
+     * @param {string} propertyName
+     * @param {string} sorting (ASC | DESC)
+     * @return {Type|null}
+     */
+    async tryLoadAllValuesOfClassByProp(className, PropertyName, sorting) {
+        let result = this.#sql.loadAllValuesOfClassByProp(className, PropertyName, sorting);
+        if (result instanceof SQLError) {
+            return "Something failed"
+        } else {
+            return result;
+        }
+    }
 }

@@ -417,4 +417,43 @@ export default class SQLDb {
         return rows[0] ?? ItemNotFoundError
     }
 
+    /**
+     * @param {string} className
+     * @param {string} propertyName
+     * @param {lf.Order} sorting (ASC | DESC)
+     * @return {Object[]|SQLError}
+     */
+    async loadAllValuesOfClassByProp(className, propertyName, sorting) {
+        let classTable = this.#getClassTable()
+        let propertyTable = this.#getPropertyTable()
+        let valueTable = this.#getValueTable()
+
+        sorting = this.getSortingSystem(sorting);
+
+        let query = this.#db.select(propertyTable.name, valueTable.value)
+            .from(valueTable)
+            .innerJoin(propertyTable, valueTable.propId.eq(propertyTable.id))
+            .innerJoin(classTable, propertyTable.classId.eq(classTable.id))
+            .where(lf.op.and(
+                classTable.name.eq(className),
+                propertyTable.name.eq(propertyName)
+            ))
+            . orderBy(valueTable.value, sorting)
+        let rows = await query.exec()
+        return rows ?? ItemNotFoundError
+    }
+
+    /**
+     * @param {string} sort (ASC | DESC)
+     * @return {lf.Order}
+     */
+    getSortingSystem(sort) {
+        if (sort === "DESC") {
+            return lf.Order.DESC;
+        } else if (sort === "ASC") {
+            return lf.Order.ASC;
+        } else {
+            return lf.Order.ASC;
+        }
+    }
 }

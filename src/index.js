@@ -95,7 +95,6 @@ async function showcaseDb() {
 
     let loadedRamon = await db.tryLoad(ramonId, allTypes)
     console.log(loadedRamon)
-    console.log(areEqual(ramon, loadedRamon))
 }
 
 function areEqual(obj1, obj2) {
