@@ -421,7 +421,7 @@ export default class SQLDb {
      * @param {string} className
      * @param {string} propertyName
      * @param {lf.Order} sorting (ASC | DESC)
-     * @return {Object[]|SQLError}
+     * @return {Promise<Object[]|SQLError>}
      */
     async loadAllValuesOfClassByProp(className, propertyName, sorting) {
         let classTable = this.#getClassTable()

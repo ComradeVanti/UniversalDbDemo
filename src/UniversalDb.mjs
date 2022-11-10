@@ -393,7 +393,7 @@ export default class UniversalDb {
      * @return {Type|null}
      */
     async tryLoadAllValuesOfClassByProp(className, PropertyName, sorting) {
-        let result = this.#sql.loadAllValuesOfClassByProp(className, PropertyName, sorting);
+        let result = await this.#sql.loadAllValuesOfClassByProp(className, PropertyName, sorting);
         if (result instanceof SQLError) {
             return "Something failed"
         } else {
