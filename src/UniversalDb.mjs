@@ -246,8 +246,19 @@ export default class UniversalDb {
         let className = getThingTypeName(thing);
         let classEntry = await this.#sql.tryGetClassByName(className);
 
+        let trimmedSuperClass;
+        if (classEntry.superId !== null) {
+            trimmedSuperClass = trimToSuperType(thing);
+        }
+
         for (let elem of propertyProps) {
-            let propertyEntry = await this.#sql.tryGetPropertyByName(classEntry.id, elem.definition.name);
+            let propertyEntry;
+            if (classEntry.superId !== null && trimmedSuperClass.hasOwnProperty(elem.definition.name)) {
+                propertyEntry = await this.#sql.tryGetPropertyByName(classEntry.superId, elem.definition.name);
+            } else {
+                propertyEntry = await this.#sql.tryGetPropertyByName(classEntry.id, elem.definition.name);
+            }
+
             let result;
             if (typeof elem.value === 'object' && elem.value !== null) {
                 let createdObjectId = await this.handleStoreValueIfValueIsObject(elem.value);
