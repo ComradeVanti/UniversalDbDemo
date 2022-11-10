@@ -263,8 +263,7 @@ export default class UniversalDb {
             if (typeof elem.value === 'object' && elem.value !== null) {
                 let createdObjectId = await this.handleStoreValueIfValueIsObject(elem.value);
                 result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, JSON.stringify(createdObjectId));
-            }
-            if (elem.value === null) {
+            } else if (elem.value === null) {
                 result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, "null");
             } else {
                 result = await this.#sql.tryInsertValue(propertyEntry.id, objectId, JSON.stringify(elem.value));
