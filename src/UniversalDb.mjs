@@ -137,6 +137,7 @@ export default class UniversalDb {
         }
 
         await this.#insertProperties(thing);
+        return result;
     }
 
     /**
