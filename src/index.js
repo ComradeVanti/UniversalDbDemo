@@ -95,6 +95,9 @@ async function showcaseDb() {
 
     let loadedRamon = await db.tryLoad(ramonId, allTypes)
     console.log(loadedRamon)
+
+    let loadAllNames = await db.tryLoadAllValuesOfClassByProp("Person", "name", "DESC");
+    console.log(loadAllNames)
 }
 
 function areEqual(obj1, obj2) {
