@@ -29,6 +29,7 @@ export default class UniversalDb {
     }
 
 
+
     /**
      * @return {Promise<UniversalDb>}
      */
@@ -123,14 +124,10 @@ export default class UniversalDb {
             switch (result) {
                 case MysteryError :
                     throw(`MysteryError: ${result} in method #insertClassFor`);
-                    break;
                 case DuplicateClassNameError :
                     throw(`DuplicateClassNameError: ${result} in method #insertClassFor`);
-                    break;
                 case ItemNotFoundError :
                     throw(`ItemNotFoundError: ${result} in method #insertClassFor`);
-                    break;
-                    break;
             }
         } else {
             console.log(`Class with id ${result} created (${getThingTypeName(thing)})`);
@@ -162,13 +159,10 @@ export default class UniversalDb {
                         switch (result) {
                             case MysteryError :
                                 throw(`Error: ${result} in method #insertProperties`);
-                                break;
                             case DuplicateClassNameError :
                                 throw(`Error: ${result} in method #insertProperties`);
-                                break;
                             case ItemNotFoundError :
                                 throw(`Error: ${result} in method #insertProperties`);
-                                break;
                         }
                     } else {
                         console.log(`Property with id ${result} created (${elem.definition.name})`);
@@ -193,13 +187,10 @@ export default class UniversalDb {
                         switch (result) {
                             case MysteryError :
                                 throw(`Error: ${result} in method #insertProperties`);
-                                break;
                             case DuplicateClassNameError :
                                 throw(`Error: ${result} in method #insertProperties`);
-                                break;
                             case ItemNotFoundError :
                                 throw(`Error: ${result} in method #insertProperties`);
-                                break;
                         }
                     } else {
                         console.log(`Property with id ${result} created (${elem.definition.name})`);
@@ -222,13 +213,10 @@ export default class UniversalDb {
             switch (result) {
                 case MysteryError :
                     throw(`Error: ${result} in method #insertObjetFor`);
-                    break;
                 case DuplicateClassNameError :
                     throw(`Error: ${result} in method #insertObjetFor`);
-                    break;
                 case ItemNotFoundError :
                     throw(`Error: ${result} in method #insertObjetFor`);
-                    break;
             }
         } else {
             console.log(`Object with id ${result} created`);
@@ -273,13 +261,10 @@ export default class UniversalDb {
                 switch (result) {
                     case MysteryError :
                         throw(`Error: ${result} in method #insertValue`);
-                        break;
                     case DuplicateClassNameError :
                         throw(`Error: ${result} in method #insertValue`);
-                        break;
                     case ItemNotFoundError :
                         throw(`Error: ${result} in method #insertValue`);
-                        break;
                 }
             } else {
                 console.log(`Value with id ${result} created (${JSON.stringify(elem.value)})`);
